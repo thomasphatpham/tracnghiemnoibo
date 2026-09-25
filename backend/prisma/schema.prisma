@@ -1,0 +1,322 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  EMPLOYEE
+}
+
+enum UserStatus {
+  ACTIVE
+  LOCKED
+  REQUIRE_SETUP
+}
+
+enum DepartmentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum QuestionStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+  AUTO_SUBMITTED
+}
+
+enum CandidateScope {
+  ALL
+  DEPARTMENTS
+  SPECIFIC_USERS
+}
+
+enum AccountRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id               String       @id @default(uuid())
+  username         String       @unique
+  email            String       @unique
+  passwordHash     String
+  fullName         String
+  position         String?
+  role             Role         @default(EMPLOYEE)
+  status           UserStatus   @default(ACTIVE)
+  failedLoginCount Int          @default(0)
+  lockedUntil      DateTime?
+  departmentId     String?
+  department       Department?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  sessions         Session[]
+  attempts         ExamAttempt[]
+  auditLogs        AuditLog[]
+  assignedExams    ExamAssignedUser[]
+
+  @@map("users")
+}
+
+model Department {
+  id          String             @id @default(uuid())
+  code        String             @unique
+  name        String
+  status      DepartmentStatus   @default(ACTIVE)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  users       User[]
+  questions   Question[]
+  examRules   ExamDepartmentRule[]
+  assignedExams ExamAssignedDepartment[]
+  accountRequests AccountRequest[]
+
+  @@map("departments")
+}
+
+model Session {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  deviceInfo String?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("sessions")
+}
+
+model PasswordResetOtp {
+  id        String    @id @default(uuid())
+  email     String
+  otpHash   String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+  @@map("password_reset_otps")
+}
+
+model Question {
+  id           String         @id @default(uuid())
+  code         String         @unique
+  content      String
+  departmentId String
+  department   Department     @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  explanation  String?
+  status       QuestionStatus @default(ACTIVE)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  options      QuestionOption[]
+  attemptQuestions ExamAttemptQuestion[]
+
+  @@index([departmentId, status])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id         String   @id @default(uuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  key        String   // "A", "B", "C", "D"
+  content    String
+  isCorrect  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([questionId, key])
+  @@map("question_options")
+}
+
+model Exam {
+  id                          String               @id @default(uuid())
+  name                        String
+  description                 String?
+  status                      ExamStatus           @default(DRAFT)
+  openAt                      DateTime
+  closeAt                     DateTime
+  durationMinutes             Int
+  totalQuestions              Int
+  passingCorrectAnswers       Int
+  shuffleQuestions            Boolean              @default(true)
+  shuffleOptions              Boolean              @default(true)
+  autosaveEnabled             Boolean              @default(true)
+  tabDetectionEnabled         Boolean              @default(true)
+  maxTabSwitches              Int                  @default(3)
+  autoSubmitOnViolate         Boolean              @default(true)
+  showScoreAfterSubmit        Boolean              @default(true)
+  showCorrectAnswersAfterSubmit Boolean            @default(false)
+  maxAttempts                 Int                  @default(1)
+  candidateScope              CandidateScope       @default(ALL)
+  createdAt                   DateTime             @default(now())
+  updatedAt                   DateTime             @updatedAt
+
+  departmentRules             ExamDepartmentRule[]
+  assignedDepartments         ExamAssignedDepartment[]
+  assignedUsers               ExamAssignedUser[]
+  attempts                    ExamAttempt[]
+
+  @@map("exams")
+}
+
+model ExamDepartmentRule {
+  id             String     @id @default(uuid())
+  examId         String
+  exam           Exam       @relation(fields: [examId], references: [id], onDelete: Cascade)
+  departmentId   String
+  department     Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  percentage     Float      // Tỷ lệ % (VD: 30 cho 30%)
+  allocatedCount Int        // Số câu được phân bổ (tính toán bằng Largest Remainder)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@unique([examId, departmentId])
+  @@map("exam_department_rules")
+}
+
+model ExamAttempt {
+  id               String                 @id @default(uuid())
+  examId           String
+  exam             Exam                   @relation(fields: [examId], references: [id], onDelete: Restrict)
+  userId           String
+  user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attemptNumber    Int                    @default(1)
+  status           AttemptStatus          @default(IN_PROGRESS)
+  startedAt        DateTime               @default(now())
+  expiresAt        DateTime               // Hạn chót chính xác từ server
+  submittedAt      DateTime?
+  score            Float?                 // Thang điểm 10 (làm tròn 2 chữ số)
+  correctCount     Int?
+  wrongCount       Int?
+  unansweredCount  Int?
+  isPassed         Boolean?
+  tabSwitchCount   Int                    @default(0)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  questions        ExamAttemptQuestion[]
+  tabSwitchLogs    TabSwitchLog[]
+
+  @@index([examId, userId])
+  @@map("exam_attempts")
+}
+
+model ExamAttemptQuestion {
+  id                     String      @id @default(uuid())
+  attemptId              String
+  attempt                ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId             String?
+  question               Question?   @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  position               Int         // Thứ tự câu hỏi trong đề của thí sinh (1, 2, 3...)
+  questionCodeSnapshot   String      // Mã câu hỏi tại thời điểm thi
+  contentSnapshot        String      // Nội dung câu hỏi tại thời điểm thi
+  optionsSnapshot        Json        // Mảng [{key: "A", content: "..."}, ...] đã xáo trộn
+  correctOptionKeySnapshot String    // Đáp án đúng tại thời điểm thi (A, B, C, hoặc D)
+  selectedOptionKey      String?     // Đáp án thí sinh chọn (A, B, C, hoặc D)
+  answeredAt             DateTime?
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
+
+  @@unique([attemptId, position])
+  @@index([attemptId])
+  @@map("exam_attempt_questions")
+}
+
+model TabSwitchLog {
+  id         String      @id @default(uuid())
+  attemptId  String
+  attempt    ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  switchedAt DateTime    @default(now())
+  reason     String?
+  totalCount Int
+
+  @@index([attemptId])
+  @@map("tab_switch_logs")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String   // CREATE_EXAM, UPDATE_USER, IMPORT_QUESTIONS...
+  entity    String   // User, Question, Exam...
+  entityId  String?
+  details   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@map("audit_logs")
+}
+
+model ExamAssignedDepartment {
+  id           String     @id @default(uuid())
+  examId       String
+  exam         Exam       @relation(fields: [examId], references: [id], onDelete: Cascade)
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@unique([examId, departmentId])
+  @@map("exam_assigned_departments")
+}
+
+model ExamAssignedUser {
+  id        String   @id @default(uuid())
+  examId    String
+  exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([examId, userId])
+  @@map("exam_assigned_users")
+}
+
+model AccountRequest {
+  id              String               @id @default(uuid())
+  fullName        String
+  username        String
+  email           String
+  departmentId    String
+  department      Department           @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  position        String?
+  reason          String?
+  status          AccountRequestStatus @default(PENDING)
+  rejectionReason String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([status])
+  @@index([email])
+  @@index([username])
+  @@map("account_requests")
+}
