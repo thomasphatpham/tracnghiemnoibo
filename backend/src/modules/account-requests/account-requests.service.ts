@@ -9,10 +9,11 @@ import { CreateAccountRequestDto } from './dto/create-account-request.dto';
 import { RejectAccountRequestDto } from './dto/reject-account-request.dto';
 import { AccountRequestStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AccountRequestsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly emailService: EmailService,) {}
 
   async create(dto: CreateAccountRequestDto) {
     const username = dto.username.trim().toLowerCase();
@@ -196,6 +197,13 @@ export class AccountRequestsService {
         },
       }),
     ]);
+
+    await this.emailService.sendAccountApprovalEmail(
+      user.email,
+      user.fullName,
+      user.username,
+      defaultPassword
+    );
 
     return {
       success: true,

@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { api } from '@/lib/api';
-import Pagination from '@/components/Pagination';
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { api } from "@/lib/api";
+import Pagination from "@/components/Pagination";
+import { Modal, message } from "antd";
 import {
   Award,
   Plus,
@@ -27,58 +28,70 @@ import {
   Filter,
   Eye,
   Check,
-} from 'lucide-react';
+} from "lucide-react";
+
+const { confirm } = Modal;
 
 export default function AdminExamsPage() {
   const [exams, setExams] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [actionError, setActionError] = useState('');
+  const [actionError, setActionError] = useState("");
   const [publishingId, setPublishingId] = useState<string | null>(null);
 
   // Modal Giám Sát Vi Phạm của từng kỳ thi cụ thể (Hướng 2)
-  const [selectedExamForViolations, setSelectedExamForViolations] = useState<any | null>(null);
-  const [examViolationsData, setExamViolationsData] = useState<any | null>(null);
+  const [selectedExamForViolations, setSelectedExamForViolations] = useState<
+    any | null
+  >(null);
+  const [examViolationsData, setExamViolationsData] = useState<any | null>(
+    null,
+  );
   const [isLoadingViolations, setIsLoadingViolations] = useState(false);
-  const [violationSearch, setViolationSearch] = useState('');
-  const [violationStatusFilter, setViolationStatusFilter] = useState('');
+  const [violationSearch, setViolationSearch] = useState("");
+  const [violationStatusFilter, setViolationStatusFilter] = useState("");
 
   const fetchExams = async () => {
     setIsLoading(true);
-    setActionError('');
+    setActionError("");
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: pageSize.toString(),
       });
-      if (search.trim()) params.append('search', search.trim());
-      if (statusFilter) params.append('status', statusFilter);
+      if (search.trim()) params.append("search", search.trim());
+      if (statusFilter) params.append("status", statusFilter);
 
       const res = await api.get(`/exams?${params.toString()}`);
       setExams(res.data.data || []);
       setTotal(res.data.total || 0);
     } catch (err) {
-      console.error('Failed to load exams', err);
+      console.error("Failed to load exams", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchViolationsForExam = async (examId: string, filterSearch = violationSearch, filterStatus = violationStatusFilter) => {
+  const fetchViolationsForExam = async (
+    examId: string,
+    filterSearch = violationSearch,
+    filterStatus = violationStatusFilter,
+  ) => {
     setIsLoadingViolations(true);
     try {
       const params = new URLSearchParams();
-      if (filterSearch.trim()) params.append('search', filterSearch.trim());
-      if (filterStatus) params.append('status', filterStatus);
+      if (filterSearch.trim()) params.append("search", filterSearch.trim());
+      if (filterStatus) params.append("status", filterStatus);
 
-      const res = await api.get(`/exams/${examId}/violations?${params.toString()}`);
+      const res = await api.get(
+        `/exams/${examId}/violations?${params.toString()}`,
+      );
       setExamViolationsData(res.data);
     } catch (err) {
-      console.error('Failed to load exam violations', err);
+      console.error("Failed to load exam violations", err);
     } finally {
       setIsLoadingViolations(false);
     }
@@ -96,9 +109,9 @@ export default function AdminExamsPage() {
 
   const handleOpenViolationsModal = (exam: any) => {
     setSelectedExamForViolations(exam);
-    setViolationSearch('');
-    setViolationStatusFilter('');
-    fetchViolationsForExam(exam.id, '', '');
+    setViolationSearch("");
+    setViolationStatusFilter("");
+    fetchViolationsForExam(exam.id, "", "");
   };
 
   const handleCloseViolationsModal = () => {
@@ -109,51 +122,108 @@ export default function AdminExamsPage() {
   const handleViolationSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedExamForViolations) {
-      fetchViolationsForExam(selectedExamForViolations.id, violationSearch, violationStatusFilter);
+      fetchViolationsForExam(
+        selectedExamForViolations.id,
+        violationSearch,
+        violationStatusFilter,
+      );
     }
   };
 
-  const handlePublish = async (id: string, name: string) => {
-    if (!confirm(`Bạn có chắc chắn muốn công bố kỳ thi "${name}"? Thí sinh được phân công sẽ có thể thấy và bắt đầu làm bài khi đến giờ mở.`)) {
-      return;
-    }
+  // const handlePublish = async (id: string, name: string) => {
+  //   if (
+  //     !confirm(
+  //       `Bạn có chắc chắn muốn công bố kỳ thi "${name}"? Thí sinh được phân công sẽ có thể thấy và bắt đầu làm bài khi đến giờ mở.`,
+  //     )
+  //   ) {
+  //     return;
+  //   }
 
-    setPublishingId(id);
-    setActionError('');
-    try {
-      await api.patch(`/exams/${id}/publish`);
-      await fetchExams();
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Không thể công bố kỳ thi.';
-      setActionError(Array.isArray(msg) ? msg.join(', ') : msg);
-    } finally {
-      setPublishingId(null);
-    }
+  //   setPublishingId(id);
+  //   setActionError("");
+  //   try {
+  //     await api.patch(`/exams/${id}/publish`);
+  //     await fetchExams();
+  //   } catch (err: any) {
+  //     const msg = err.response?.data?.message || "Không thể công bố kỳ thi.";
+  //     setActionError(Array.isArray(msg) ? msg.join(", ") : msg);
+  //   } finally {
+  //     setPublishingId(null);
+  //   }
+  // };
+
+  // const handleDelete = async (id: string, name: string) => {
+  //   if (
+  //     !confirm(
+  //       `Bạn có chắc muốn xóa kỳ thi "${name}"? Thao tác này không thể hoàn tác.`,
+  //     )
+  //   ) {
+  //     return;
+  //   }
+
+  //   try {
+  //     await api.delete(`/exams/${id}`);
+  //     await fetchExams();
+  //   } catch (err: any) {
+  //     const msg = err.response?.data?.message || "Không thể xóa kỳ thi.";
+  //     alert(Array.isArray(msg) ? msg.join(", ") : msg);
+  //   }
+  // };
+
+  const handlePublish = (id: string, name: string) => {
+    confirm({
+      title: "Xác nhận công bố",
+      content: `Bạn có chắc chắn muốn công bố kỳ thi "${name}"? Thí sinh được phân công sẽ có thể thấy và bắt đầu làm bài khi đến giờ mở.`,
+      okText: "Công bố",
+      okType: "primary",
+      cancelText: "Hủy",
+      onOk: async () => {
+        setPublishingId(id);
+        setActionError("");
+        try {
+          await api.patch(`/exams/${id}/publish`);
+          message.success("Đã công bố kỳ thi thành công.");
+          await fetchExams();
+        } catch (err: any) {
+          const msg =
+            err.response?.data?.message || "Không thể công bố kỳ thi.";
+          setActionError(Array.isArray(msg) ? msg.join(", ") : msg);
+        } finally {
+          setPublishingId(null);
+        }
+      },
+    });
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Bạn có chắc muốn xóa kỳ thi "${name}"? Thao tác này không thể hoàn tác.`)) {
-      return;
-    }
-
-    try {
-      await api.delete(`/exams/${id}`);
-      await fetchExams();
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Không thể xóa kỳ thi.';
-      alert(Array.isArray(msg) ? msg.join(', ') : msg);
-    }
+  const handleDelete = (id: string, name: string) => {
+    confirm({
+      title: "Xác nhận xóa kỳ thi",
+      content: `Bạn có chắc muốn xóa kỳ thi "${name}"? Thao tác này không thể hoàn tác.`,
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          await api.delete(`/exams/${id}`);
+          message.success("Đã xóa kỳ thi thành công.");
+          await fetchExams();
+        } catch (err: any) {
+          const msg = err.response?.data?.message || "Không thể xóa kỳ thi.";
+          message.error(Array.isArray(msg) ? msg.join(", ") : msg);
+        }
+      },
+    });
   };
 
   const formatDateTime = (dateStr: string) => {
     try {
       const d = new Date(dateStr);
-      return d.toLocaleString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+      return d.toLocaleString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch {
       return dateStr;
@@ -174,7 +244,10 @@ export default function AdminExamsPage() {
             </h1>
           </div>
           <p className="text-xs text-slate-500 mt-1 pl-10">
-            Cấu hình đề thi, giám sát vi phạm theo từng kỳ và phân phối thí sinh • Tổng cộng: <strong className="text-blue-600 font-semibold">{total}</strong> kỳ thi
+            Cấu hình đề thi, giám sát vi phạm theo từng kỳ và phân phối thí sinh
+            • Tổng cộng:{" "}
+            <strong className="text-blue-600 font-semibold">{total}</strong> kỳ
+            thi
           </p>
         </div>
 
@@ -235,18 +308,22 @@ export default function AdminExamsPage() {
       {isLoading ? (
         <div className="bg-white rounded-2xl border border-slate-200/80 p-16 text-center text-slate-400 shadow-xs">
           <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600 mb-2" />
-          <p className="text-xs font-medium text-slate-500">Đang tải danh sách kỳ thi...</p>
+          <p className="text-xs font-medium text-slate-500">
+            Đang tải danh sách kỳ thi...
+          </p>
         </div>
       ) : exams.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-16 text-center space-y-3">
           <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto text-blue-600">
             <Award className="w-7 h-7" />
           </div>
-          <h3 className="text-sm font-bold text-slate-800">Chưa có kỳ thi nào</h3>
+          <h3 className="text-sm font-bold text-slate-800">
+            Chưa có kỳ thi nào
+          </h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
             {search || statusFilter
-              ? 'Không tìm thấy kỳ thi nào phù hợp với bộ lọc tìm kiếm.'
-              : 'Bạn có thể bắt đầu tạo kỳ thi mới để cấu hình thời gian thi, đối tượng thí sinh, phân bổ câu hỏi và quy chế chống gian lận.'}
+              ? "Không tìm thấy kỳ thi nào phù hợp với bộ lọc tìm kiếm."
+              : "Bạn có thể bắt đầu tạo kỳ thi mới để cấu hình thời gian thi, đối tượng thí sinh, phân bổ câu hỏi và quy chế chống gian lận."}
           </p>
           <div className="pt-2">
             <Link
@@ -276,43 +353,55 @@ export default function AdminExamsPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {exams.map((exam) => {
-                  const isDraft = exam.status === 'DRAFT';
-                  const isPublished = exam.status === 'PUBLISHED';
-                  const isClosed = exam.status === 'CLOSED';
+                  const isDraft = exam.status === "DRAFT";
+                  const isPublished = exam.status === "PUBLISHED";
+                  const isClosed = exam.status === "CLOSED";
                   const violationCount = exam.violationCount || 0;
 
                   return (
-                    <tr key={exam.id} className="hover:bg-blue-50/30 transition-colors">
+                    <tr
+                      key={exam.id}
+                      className="hover:bg-blue-50/30 transition-colors"
+                    >
                       <td className="px-5 py-4 font-medium text-slate-900 max-w-xs">
-                        <div className="font-semibold text-slate-800 line-clamp-1">{exam.name}</div>
+                        <div className="font-semibold text-slate-800 line-clamp-1">
+                          {exam.name}
+                        </div>
                         {exam.description && (
                           <div className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
                             {exam.description}
                           </div>
                         )}
                         <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-400">
-                          <span className="font-medium text-blue-600">{exam._count?.attempts || 0}</span> lượt nộp bài
+                          <span className="font-medium text-blue-600">
+                            {exam._count?.attempts || 0}
+                          </span>{" "}
+                          lượt nộp bài
                         </div>
                       </td>
 
                       {/* Candidate Scope */}
                       <td className="px-4 py-4 whitespace-nowrap">
-                        {exam.candidateScope === 'ALL' && (
+                        {exam.candidateScope === "ALL" && (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/80">
                             <Users className="w-3 h-3 text-blue-600" />
                             <span>Toàn công ty</span>
                           </span>
                         )}
-                        {exam.candidateScope === 'DEPARTMENTS' && (
+                        {exam.candidateScope === "DEPARTMENTS" && (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
                             <Building2 className="w-3 h-3 text-indigo-600" />
-                            <span>{exam.assignedDepartments?.length || 0} Phòng ban</span>
+                            <span>
+                              {exam.assignedDepartments?.length || 0} Phòng ban
+                            </span>
                           </span>
                         )}
-                        {exam.candidateScope === 'SPECIFIC_USERS' && (
+                        {exam.candidateScope === "SPECIFIC_USERS" && (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                             <Users className="w-3 h-3 text-emerald-600" />
-                            <span>{exam.assignedUsers?.length || 0} Nhân viên</span>
+                            <span>
+                              {exam.assignedUsers?.length || 0} Nhân viên
+                            </span>
                           </span>
                         )}
                       </td>
@@ -321,11 +410,17 @@ export default function AdminExamsPage() {
                         <div className="flex flex-col gap-1 text-[11px]">
                           <span className="flex items-center gap-1.5 text-slate-700">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <span className="font-semibold text-slate-500">Mở:</span> {formatDateTime(exam.openAt)}
+                            <span className="font-semibold text-slate-500">
+                              Mở:
+                            </span>{" "}
+                            {formatDateTime(exam.openAt)}
                           </span>
                           <span className="flex items-center gap-1.5 text-slate-700">
                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                            <span className="font-semibold text-slate-500">Đóng:</span> {formatDateTime(exam.closeAt)}
+                            <span className="font-semibold text-slate-500">
+                              Đóng:
+                            </span>{" "}
+                            {formatDateTime(exam.closeAt)}
                           </span>
                         </div>
                       </td>
@@ -342,7 +437,13 @@ export default function AdminExamsPage() {
 
                           <div className="flex items-center gap-1 text-[10px] text-slate-600">
                             <RotateCcw className="w-3 h-3 text-blue-600" />
-                            <span>Tối đa: <strong className="text-blue-700">{exam.maxAttempts || 1}</strong> lượt thi</span>
+                            <span>
+                              Tối đa:{" "}
+                              <strong className="text-blue-700">
+                                {exam.maxAttempts || 1}
+                              </strong>{" "}
+                              lượt thi
+                            </span>
                           </div>
 
                           {exam.tabDetectionEnabled && (
@@ -369,8 +470,12 @@ export default function AdminExamsPage() {
                               key={rule.id}
                               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200"
                             >
-                              <span className="font-semibold text-slate-800">{rule.department?.code}:</span>
-                              <span className="text-blue-700 font-bold">{rule.allocatedCount} câu</span>
+                              <span className="font-semibold text-slate-800">
+                                {rule.department?.code}:
+                              </span>
+                              <span className="text-blue-700 font-bold">
+                                {rule.allocatedCount} câu
+                              </span>
                             </span>
                           ))}
                         </div>
@@ -433,7 +538,9 @@ export default function AdminExamsPage() {
                           {isDraft && (
                             <>
                               <button
-                                onClick={() => handlePublish(exam.id, exam.name)}
+                                onClick={() =>
+                                  handlePublish(exam.id, exam.name)
+                                }
                                 disabled={publishingId === exam.id}
                                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition disabled:opacity-50 cursor-pointer"
                                 title="Công bố kỳ thi cho thí sinh"
@@ -497,19 +604,26 @@ export default function AdminExamsPage() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Quy định: {selectedExamForViolations.maxTabSwitches === 0 ? 'Cấm tuyệt đối (0 lần chuyển tab)' : `Tối đa ${selectedExamForViolations.maxTabSwitches} lần chuyển tab`}
+                    Quy định:{" "}
+                    {selectedExamForViolations.maxTabSwitches === 0
+                      ? "Cấm tuyệt đối (0 lần chuyển tab)"
+                      : `Tối đa ${selectedExamForViolations.maxTabSwitches} lần chuyển tab`}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => fetchViolationsForExam(selectedExamForViolations.id)}
+                  onClick={() =>
+                    fetchViolationsForExam(selectedExamForViolations.id)
+                  }
                   disabled={isLoadingViolations}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition cursor-pointer"
                   title="Làm mới danh sách"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingViolations ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
+                  <RefreshCw
+                    className={`w-3.5 h-3.5 ${isLoadingViolations ? "animate-spin text-blue-600" : "text-slate-500"}`}
+                  />
                   <span>Cập nhật</span>
                 </button>
                 <button
@@ -526,19 +640,25 @@ export default function AdminExamsPage() {
             {examViolationsData?.summary && (
               <div className="grid grid-cols-3 gap-3 p-4 bg-slate-50 border-b border-slate-200 text-center">
                 <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-xs">
-                  <div className="text-[11px] font-medium text-slate-500 uppercase">Thí sinh vi phạm</div>
+                  <div className="text-[11px] font-medium text-slate-500 uppercase">
+                    Thí sinh vi phạm
+                  </div>
                   <div className="text-lg font-bold text-slate-800 mt-0.5">
                     {examViolationsData.summary.totalViolators}
                   </div>
                 </div>
                 <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-xs">
-                  <div className="text-[11px] font-medium text-rose-600 uppercase">Bị cưỡng chế thu bài</div>
+                  <div className="text-[11px] font-medium text-rose-600 uppercase">
+                    Bị cưỡng chế thu bài
+                  </div>
                   <div className="text-lg font-bold text-rose-700 mt-0.5">
                     {examViolationsData.summary.autoSubmittedCount}
                   </div>
                 </div>
                 <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 shadow-xs">
-                  <div className="text-[11px] font-medium text-blue-600 uppercase">Tổng số lần chuyển tab</div>
+                  <div className="text-[11px] font-medium text-blue-600 uppercase">
+                    Tổng số lần chuyển tab
+                  </div>
                   <div className="text-lg font-bold text-blue-700 mt-0.5">
                     {examViolationsData.summary.totalSwitches}
                   </div>
@@ -548,7 +668,10 @@ export default function AdminExamsPage() {
 
             {/* Search and Filters trong Modal */}
             <div className="p-4 border-b border-slate-200 bg-white flex flex-col sm:flex-row items-center justify-between gap-3">
-              <form onSubmit={handleViolationSearchSubmit} className="relative flex-1 w-full">
+              <form
+                onSubmit={handleViolationSearchSubmit}
+                className="relative flex-1 w-full"
+              >
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
@@ -563,12 +686,18 @@ export default function AdminExamsPage() {
                 value={violationStatusFilter}
                 onChange={(e) => {
                   setViolationStatusFilter(e.target.value);
-                  fetchViolationsForExam(selectedExamForViolations.id, violationSearch, e.target.value);
+                  fetchViolationsForExam(
+                    selectedExamForViolations.id,
+                    violationSearch,
+                    e.target.value,
+                  );
                 }}
                 className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 text-slate-700 font-medium cursor-pointer w-full sm:w-auto"
               >
                 <option value="">Tất cả trạng thái</option>
-                <option value="AUTO_SUBMITTED">Bị thu bài tự động (AUTO_SUBMITTED)</option>
+                <option value="AUTO_SUBMITTED">
+                  Bị thu bài tự động (AUTO_SUBMITTED)
+                </option>
                 <option value="SUBMITTED">Đã nộp bài bình thường</option>
                 <option value="IN_PROGRESS">Đang làm bài</option>
               </select>
@@ -581,14 +710,18 @@ export default function AdminExamsPage() {
                   <Loader2 className="w-7 h-7 animate-spin mx-auto text-blue-600 mb-2" />
                   <p className="text-xs">Đang tải dữ liệu biên bản...</p>
                 </div>
-              ) : !examViolationsData?.violations || examViolationsData.violations.length === 0 ? (
+              ) : !examViolationsData?.violations ||
+                examViolationsData.violations.length === 0 ? (
                 <div className="p-12 text-center space-y-2">
                   <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-800">Không có vi phạm nào</h4>
+                  <h4 className="text-sm font-bold text-slate-800">
+                    Không có vi phạm nào
+                  </h4>
                   <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                    Kỳ thi này tuân thủ quy chế 100% hoặc không có thí sinh nào khớp với bộ lọc tìm kiếm.
+                    Kỳ thi này tuân thủ quy chế 100% hoặc không có thí sinh nào
+                    khớp với bộ lọc tìm kiếm.
                   </p>
                 </div>
               ) : (
@@ -598,32 +731,47 @@ export default function AdminExamsPage() {
                       <tr>
                         <th className="px-4 py-3">Thí sinh</th>
                         <th className="px-4 py-3">Phòng ban</th>
-                        <th className="px-3 py-3 text-center">Số lần chuyển tab</th>
-                        <th className="px-4 py-3 text-center">Trạng thái bài làm</th>
-                        <th className="px-4 py-3 text-right">Vi phạm gần nhất</th>
+                        <th className="px-3 py-3 text-center">
+                          Số lần chuyển tab
+                        </th>
+                        <th className="px-4 py-3 text-center">
+                          Trạng thái bài làm
+                        </th>
+                        <th className="px-4 py-3 text-right">
+                          Vi phạm gần nhất
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {examViolationsData.violations.map((v: any) => {
-                        const isAutoSubmitted = v.status === 'AUTO_SUBMITTED';
+                        const isAutoSubmitted = v.status === "AUTO_SUBMITTED";
                         return (
-                          <tr key={v.id} className="hover:bg-slate-50/80 transition-colors">
+                          <tr
+                            key={v.id}
+                            className="hover:bg-slate-50/80 transition-colors"
+                          >
                             <td className="px-4 py-3.5">
-                              <div className="font-semibold text-slate-900">{v.user?.fullName}</div>
-                              <div className="text-[11px] text-slate-400 font-mono">@{v.user?.username} • {v.user?.email}</div>
+                              <div className="font-semibold text-slate-900">
+                                {v.user?.fullName}
+                              </div>
+                              <div className="text-[11px] text-slate-400 font-mono">
+                                @{v.user?.username} • {v.user?.email}
+                              </div>
                             </td>
                             <td className="px-4 py-3.5">
                               <span className="inline-flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px] font-medium">
                                 <Building2 className="w-3 h-3 text-slate-400" />
-                                <span>{v.user?.department?.name || 'N/A'}</span>
+                                <span>{v.user?.department?.name || "N/A"}</span>
                               </span>
                             </td>
                             <td className="px-3 py-3.5 text-center">
-                              <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                                isAutoSubmitted || v.tabSwitchCount >= 3
-                                  ? 'bg-rose-100 text-rose-700'
-                                  : 'bg-amber-100 text-amber-800'
-                              }`}>
+                              <span
+                                className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                  isAutoSubmitted || v.tabSwitchCount >= 3
+                                    ? "bg-rose-100 text-rose-700"
+                                    : "bg-amber-100 text-amber-800"
+                                }`}
+                              >
                                 {v.tabSwitchCount} lần
                               </span>
                             </td>

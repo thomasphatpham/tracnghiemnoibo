@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import { Modal } from "antd";
 import {
   Clock,
   CheckCircle2,
@@ -17,7 +18,7 @@ import {
   Award,
   X,
   KeyRound,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface Option {
   key: string;
@@ -57,7 +58,9 @@ export default function ExamRoomPage() {
   const [attempt, setAttempt] = useState<AttemptData | null>(null);
   const [currentPosition, setCurrentPosition] = useState<number>(1);
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'offline'>('saved');
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "offline">(
+    "saved",
+  );
   const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,26 +71,33 @@ export default function ExamRoomPage() {
   // Tính năng ẩn: xem đáp án bài thi qua phím tắt Ctrl + Shift + P
   const [isLogoUnlocked, setIsLogoUnlocked] = useState(false);
   const [showCheatModal, setShowCheatModal] = useState(false);
-  const [cheatAnswers, setCheatAnswers] = useState<Array<{ position: number; correctKey: string }> | null>(null);
+  const [cheatAnswers, setCheatAnswers] = useState<Array<{
+    position: number;
+    correctKey: string;
+  }> | null>(null);
   const [isLoadingCheat, setIsLoadingCheat] = useState(false);
 
   // Kích hoạt mở khóa bằng phím tắt Ctrl + Shift + P
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'p' || e.key === 'P')) {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        e.shiftKey &&
+        (e.key === "p" || e.key === "P")
+      ) {
         e.preventDefault();
         setIsLogoUnlocked(true);
         return;
       }
 
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         setIsLogoUnlocked(false);
         setShowCheatModal(false);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const handleLogoClick = async () => {
@@ -99,8 +109,8 @@ export default function ExamRoomPage() {
         const res = await api.get(`/attempts/${attemptId}/cheat-answers`);
         setCheatAnswers(res.data);
       } catch (err: any) {
-        console.error('Failed to load cheat answers', err);
-        alert(err.response?.data?.message || 'Không thể tải danh sách đáp án.');
+        console.error("Failed to load cheat answers", err);
+        alert(err.response?.data?.message || "Không thể tải danh sách đáp án.");
       } finally {
         setIsLoadingCheat(false);
       }
@@ -110,6 +120,8 @@ export default function ExamRoomPage() {
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const attemptRef = useRef<AttemptData | null>(null);
   attemptRef.current = attempt;
+
+  const isSubmittedRef = useRef(false);
 
   // 1. Tải thông tin phòng thi & khôi phục bài thi
   useEffect(() => {
@@ -122,7 +134,7 @@ export default function ExamRoomPage() {
         const data: AttemptData = res.data;
 
         // Nếu bài thi đã nộp/kết thúc từ trước, chuyển ngay sang trang kết quả
-        if (data.status !== 'IN_PROGRESS') {
+        if (data.status !== "IN_PROGRESS") {
           router.replace(`/employee/results/${attemptId}`);
           return;
         }
@@ -144,9 +156,9 @@ export default function ExamRoomPage() {
         const diff = Math.max(0, Math.floor((expiresTime - Date.now()) / 1000));
         setRemainingSeconds(diff);
       } catch (err: any) {
-        console.error('Failed to load attempt', err);
-        alert(err.response?.data?.message || 'Không thể tải đề thi.');
-        router.push('/employee/exams');
+        console.error("Failed to load attempt", err);
+        alert(err.response?.data?.message || "Không thể tải đề thi.");
+        router.push("/employee/exams");
       } finally {
         setIsLoading(false);
       }
@@ -157,7 +169,7 @@ export default function ExamRoomPage() {
 
   // 2. Bộ đếm ngược thời gian (Server-Side Deadline countdown)
   useEffect(() => {
-    if (!attempt || attempt.status !== 'IN_PROGRESS') return;
+    if (!attempt || attempt.status !== "IN_PROGRESS") return;
 
     const timer = setInterval(() => {
       const expiresTime = new Date(attempt.expiresAt).getTime();
@@ -167,7 +179,9 @@ export default function ExamRoomPage() {
       // Khi hết giờ -> tự động nộp bài
       if (diff <= 0) {
         clearInterval(timer);
-        handleForceAutoSubmit('Thời gian làm bài đã kết thúc! Hệ thống đang tự động nộp bài.');
+        handleForceAutoSubmit(
+          "Thời gian làm bài đã kết thúc! Hệ thống đang tự động nộp bài.",
+        );
       }
     }, 1000);
 
@@ -177,7 +191,7 @@ export default function ExamRoomPage() {
   // 3. Tự động lưu đáp án ngầm (Debounced Autosave)
   const triggerAutosave = useCallback(
     (position: number, selectedKey: string) => {
-      setSaveStatus('saving');
+      setSaveStatus("saving");
 
       if (saveTimerRef.current) {
         clearTimeout(saveTimerRef.current);
@@ -189,10 +203,10 @@ export default function ExamRoomPage() {
             position,
             selectedOptionKey: selectedKey,
           });
-          setSaveStatus('saved');
+          setSaveStatus("saved");
         } catch (err) {
-          console.error('Autosave error', err);
-          setSaveStatus('offline');
+          console.error("Autosave error", err);
+          setSaveStatus("offline");
         }
       }, 500);
     },
@@ -209,28 +223,148 @@ export default function ExamRoomPage() {
     if (!attempt?.tabDetectionEnabled) return;
 
     const handleVisibilityChange = async () => {
+      if (isSubmittedRef.current) return;
+
       if (document.hidden) {
         try {
           const res = await api.patch(`/attempts/${attemptId}/tab-switch`, {
-            reason: 'Rời tab bài thi (visibilitychange)',
+            reason: "Rời tab bài thi (visibilitychange)",
           });
 
-          if (res.data?.autoSubmitted) {
-            alert(res.data.message || 'Bài thi bị tự động nộp do chuyển tab quá giới hạn!');
-            router.replace(`/employee/results/${attemptId}`);
-            return;
-          }
-
-          setTabCount(res.data.tabSwitchCount || (prev => prev + 1));
+          setTabCount(res.data.tabSwitchCount || ((prev) => prev + 1));
           setTabWarning(res.data.message);
+
+          Modal.destroyAll();
+
+          if (res.data?.autoSubmitted) {
+            isSubmittedRef.current = true;
+
+            // Modal.error({
+            //   title: "Vi phạm bài thi",
+            //   content: (
+            //     <div className="mt-2 space-y-2">
+            //       <div className="font-semibold text-rose-600">
+            //         {res.data.message ||
+            //           "Bài thi bị tự động nộp do chuyển tab quá giới hạn!"}
+            //       </div>
+            //       <div className="text-slate-700 font-medium">
+            //         Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
+            //         {attempt.maxTabSwitches}
+            //       </div>
+            //     </div>
+            //   ),
+            //   okText: "Ok",
+            //   onOk: () => {
+            //     router.replace(`/employee/results/${attemptId}`);
+            //   },
+            //   width: 450,
+            // });
+            router.replace(`/employee/results/${attemptId}`);
+          } else {
+            Modal.warning({
+              title: "Cảnh báo vi phạm",
+              content: (
+                <div className="mt-2 text-slate-700">
+                  {res.data.message}
+                  <br />
+                  <span className="font-semibold text-amber-600 mt-1 inline-block">
+                    Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
+                    {attempt.maxTabSwitches}
+                  </span>
+                </div>
+              ),
+              okText: "Ok",
+              width: 400,
+            });
+          }
         } catch (err) {
-          console.error('Tab switch report error', err);
+          console.error("Tab switch report error", err);
         }
       }
+      // if (document.hidden) {
+      //   try {
+      //     const res = await api.patch(`/attempts/${attemptId}/tab-switch`, {
+      //       reason: "Rời tab bài thi (visibilitychange)",
+      //     });
+
+      //     setTabCount(res.data.tabSwitchCount || ((prev) => prev + 1));
+      //     setTabWarning(res.data.message);
+
+      //     Modal.destroyAll();
+
+      // if (res.data?.autoSubmitted) {
+      //   // alert(res.data.message || 'Bài thi bị tự động nộp do chuyển tab quá giới hạn!');
+      //   // router.replace(`/employee/results/${attemptId}`);
+      //   // return;
+      //   Modal.warning({
+      //     title: "Vi phạm bài thi",
+      //     content: (
+      //       <div>
+      //         <div>
+      //           {res.data.message ||
+      //             "Bài thi bị tự động nộp do chuyển tab quá giới hạn!"}
+      //         </div>
+      //         <div>
+      //           Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
+      //           {attempt.maxTabSwitches}
+      //         </div>
+      //       </div>
+      //     ),
+      //     okText: "Ok",
+      //     onOk: () => {
+      //       router.replace(`/employee/results/${attemptId}`);
+      //     },
+      //     width: "40%",
+      //   });
+      //   return;
+      // }
+      //     if (res.data?.autoSubmitted) {
+      //       Modal.error({
+      //         title: "Vi phạm bài thi",
+      //         content: (
+      //           <div className="mt-2 space-y-2">
+      //             <div className="font-semibold text-rose-600">
+      //               {res.data.message ||
+      //                 "Bài thi bị tự động nộp do chuyển tab quá giới hạn!"}
+      //             </div>
+      //             <div className="text-slate-700 font-medium">
+      //               (Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
+      //               {attempt.maxTabSwitches})
+      //             </div>
+      //           </div>
+      //         ),
+      //         okText: "Ok",
+      //         onOk: () => {
+      //           router.replace(`/employee/results/${attemptId}`);
+      //         },
+      //         width: 450,
+      //       });
+      //     } else {
+      //       Modal.warning({
+      //         title: "Cảnh báo vi phạm",
+      //         content: (
+      //           <div className="mt-2 text-slate-700">
+      //             {res.data.message}
+      //             <br />
+      //             <span className="font-semibold text-amber-600 mt-1 inline-block">
+      //               (Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
+      //               {attempt.maxTabSwitches})
+      //             </span>
+      //           </div>
+      //         ),
+      //         okText: "Tôi đã hiểu",
+      //         width: 400,
+      //       });
+      //     }
+      //   } catch (err) {
+      //     console.error("Tab switch report error", err);
+      //   }
+      // }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [attempt, attemptId, router]);
 
   // 5. Nộp bài chủ động
@@ -240,7 +374,10 @@ export default function ExamRoomPage() {
       await api.post(`/attempts/${attemptId}/submit`);
       router.replace(`/employee/results/${attemptId}`);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Không thể nộp bài thi. Vui lòng thử lại.');
+      alert(
+        err.response?.data?.message ||
+          "Không thể nộp bài thi. Vui lòng thử lại.",
+      );
       setIsSubmitting(false);
     }
   };
@@ -253,27 +390,39 @@ export default function ExamRoomPage() {
     } catch (e) {
       // Ignore
     } finally {
-      alert(reason);
-      router.replace(`/employee/results/${attemptId}`);
+      // alert(reason);
+      // router.replace(`/employee/results/${attemptId}`);
+      Modal.info({
+        title: "Thông báo nộp bài",
+        content: reason,
+        okText: "Ok",
+        onOk: () => {
+          router.replace(`/employee/results/${attemptId}`);
+        },
+      });
     }
   };
 
   const formatTimer = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   if (isLoading || !attempt) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white space-y-3">
         <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
-        <p className="text-sm font-medium text-slate-300">Đang chuẩn bị đề thi cho bạn...</p>
+        <p className="text-sm font-medium text-slate-300">
+          Đang chuẩn bị đề thi cho bạn...
+        </p>
       </div>
     );
   }
 
-  const currentQuestion = attempt.questions.find((q) => q.position === currentPosition) || attempt.questions[0];
+  const currentQuestion =
+    attempt.questions.find((q) => q.position === currentPosition) ||
+    attempt.questions[0];
   const totalQuestions = attempt.questions.length;
   const answeredCount = Object.keys(answers).length;
   const unansweredCount = totalQuestions - answeredCount;
@@ -288,11 +437,13 @@ export default function ExamRoomPage() {
           <div className="flex items-center gap-3">
             <div
               onClick={handleLogoClick}
-              title={isLogoUnlocked ? 'Bấm để tra cứu đáp án đề thi' : undefined}
+              title={
+                isLogoUnlocked ? "Bấm để tra cứu đáp án đề thi" : undefined
+              }
               className={`h-9 w-9 rounded-lg bg-white p-0.5 border transition-all flex items-center justify-center shrink-0 shadow-xs select-none ${
                 isLogoUnlocked
-                  ? 'cursor-pointer border-emerald-400 ring-2 ring-emerald-400/40 hover:scale-105 active:scale-95 shadow-md shadow-emerald-100'
-                  : 'border-slate-200'
+                  ? "cursor-pointer border-emerald-400 ring-2 ring-emerald-400/40 hover:scale-105 active:scale-95 shadow-md shadow-emerald-100"
+                  : "border-slate-200"
               }`}
             >
               <img
@@ -308,19 +459,19 @@ export default function ExamRoomPage() {
               <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
                 <span>Lượt thi #{attempt.id.slice(0, 6).toUpperCase()}</span>
                 <span>•</span>
-                {saveStatus === 'saved' && (
+                {saveStatus === "saved" && (
                   <span className="inline-flex items-center gap-1 text-emerald-600 font-medium">
                     <Check className="w-3.5 h-3.5" />
                     <span>Đã lưu</span>
                   </span>
                 )}
-                {saveStatus === 'saving' && (
+                {saveStatus === "saving" && (
                   <span className="inline-flex items-center gap-1 text-amber-600 font-medium">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     <span>Đang lưu...</span>
                   </span>
                 )}
-                {saveStatus === 'offline' && (
+                {saveStatus === "offline" && (
                   <span className="inline-flex items-center gap-1 text-rose-600 font-medium">
                     <WifiOff className="w-3.5 h-3.5" />
                     <span>Mất mạng - lưu offline</span>
@@ -336,11 +487,13 @@ export default function ExamRoomPage() {
             <div
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-mono text-sm font-bold border transition ${
                 isUrgent
-                  ? 'bg-rose-50 text-rose-600 border-rose-300 animate-pulse'
-                  : 'bg-blue-50 text-blue-700 border-blue-200'
+                  ? "bg-rose-50 text-rose-600 border-rose-300 animate-pulse"
+                  : "bg-blue-50 text-blue-700 border-blue-200"
               }`}
             >
-              <Clock className={`w-4 h-4 ${isUrgent ? 'text-rose-600' : 'text-blue-600'}`} />
+              <Clock
+                className={`w-4 h-4 ${isUrgent ? "text-rose-600" : "text-blue-600"}`}
+              />
               <span>{formatTimer(remainingSeconds)}</span>
             </div>
 
@@ -357,12 +510,15 @@ export default function ExamRoomPage() {
       </header>
 
       {/* Tab Switch Warning Banner */}
-      {tabWarning && (
+      {/* {tabWarning && (
         <div className="bg-amber-500 text-white px-4 py-2 text-xs font-semibold text-center flex items-center justify-center gap-2 shadow-sm animate-bounce">
           <ShieldAlert className="w-4 h-4" />
-          <span>{tabWarning} (Cảnh báo: Vi phạm lần {tabCount}/{attempt.maxTabSwitches})</span>
+          <span>
+            {tabWarning} (Cảnh báo: Vi phạm lần {tabCount}/
+            {attempt.maxTabSwitches})
+          </span>
         </div>
-      )}
+      )} */}
 
       {/* Main Examination Body */}
       <main className="max-w-7xl mx-auto px-4 sm:px-8 py-6 w-full flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -393,23 +549,26 @@ export default function ExamRoomPage() {
             {/* Options List */}
             <div className="space-y-3 pt-2">
               {currentQuestion.options.map((opt) => {
-                const isSelected = answers[currentQuestion.position] === opt.key;
+                const isSelected =
+                  answers[currentQuestion.position] === opt.key;
                 return (
                   <button
                     key={opt.key}
                     type="button"
-                    onClick={() => handleSelectOption(currentQuestion.position, opt.key)}
+                    onClick={() =>
+                      handleSelectOption(currentQuestion.position, opt.key)
+                    }
                     className={`w-full text-left p-4 rounded-xl border transition-all flex items-start gap-3.5 cursor-pointer ${
                       isSelected
-                        ? 'border-blue-600 bg-blue-50/80 shadow-xs ring-2 ring-blue-500/20'
-                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/60 bg-white'
+                        ? "border-blue-600 bg-blue-50/80 shadow-xs ring-2 ring-blue-500/20"
+                        : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/60 bg-white"
                     }`}
                   >
                     <span
                       className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 transition ${
                         isSelected
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-slate-100 text-slate-700 border border-slate-200'
+                          ? "bg-blue-600 text-white"
+                          : "bg-slate-100 text-slate-700 border border-slate-200"
                       }`}
                     >
                       {opt.key}
@@ -427,7 +586,9 @@ export default function ExamRoomPage() {
               <button
                 type="button"
                 disabled={currentPosition === 1}
-                onClick={() => setCurrentPosition((prev) => Math.max(1, prev - 1))}
+                onClick={() =>
+                  setCurrentPosition((prev) => Math.max(1, prev - 1))
+                }
                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-1 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -437,7 +598,11 @@ export default function ExamRoomPage() {
               <button
                 type="button"
                 disabled={currentPosition === totalQuestions}
-                onClick={() => setCurrentPosition((prev) => Math.min(totalQuestions, prev + 1))}
+                onClick={() =>
+                  setCurrentPosition((prev) =>
+                    Math.min(totalQuestions, prev + 1),
+                  )
+                }
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition flex items-center gap-1 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 <span>Câu tiếp theo</span>
@@ -467,10 +632,10 @@ export default function ExamRoomPage() {
                     onClick={() => setCurrentPosition(q.position)}
                     className={`h-10 rounded-xl text-xs font-bold transition flex items-center justify-center cursor-pointer ${
                       isCurrent
-                        ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2'
+                        ? "bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2"
                         : isAnswered
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100'
-                        : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100"
+                          : "bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200"
                     }`}
                   >
                     {q.position}
@@ -517,8 +682,12 @@ export default function ExamRoomPage() {
                     <KeyRound className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">Đáp án đề thi</h3>
-                    <p className="text-[11px] text-slate-500">Nhấp vào số câu để chuyển đến câu đó</p>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Đáp án đề thi
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Nhấp vào số câu để chuyển đến câu đó
+                    </p>
                   </div>
                 </div>
                 <button
@@ -534,7 +703,9 @@ export default function ExamRoomPage() {
               {isLoadingCheat ? (
                 <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-500">
                   <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-                  <span className="text-xs font-medium">Đang tải đáp án...</span>
+                  <span className="text-xs font-medium">
+                    Đang tải đáp án...
+                  </span>
                 </div>
               ) : (
                 <div className="max-h-72 overflow-y-auto pr-1">
@@ -548,8 +719,8 @@ export default function ExamRoomPage() {
                           onClick={() => setCurrentPosition(item.position)}
                           className={`p-2.5 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 ${
                             isCurrent
-                              ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-500/20'
-                              : 'bg-slate-50/80 border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50'
+                              ? "bg-blue-50 border-blue-400 ring-2 ring-blue-500/20"
+                              : "bg-slate-50/80 border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50"
                           }`}
                         >
                           <span className="text-[10px] font-medium text-slate-500 uppercase">
@@ -581,7 +752,8 @@ export default function ExamRoomPage() {
                 Xác Nhận Nộp Bài Thi
               </h3>
               <p className="text-xs text-slate-500">
-                Sau khi nộp bài, hệ thống sẽ tiến hành chấm điểm tự động và bạn không thể sửa lại câu trả lời.
+                Sau khi nộp bài, hệ thống sẽ tiến hành chấm điểm tự động và bạn
+                không thể sửa lại câu trả lời.
               </p>
             </div>
 
@@ -589,7 +761,9 @@ export default function ExamRoomPage() {
             <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>Tổng số câu hỏi:</span>
-                <span className="font-bold text-slate-900">{totalQuestions} câu</span>
+                <span className="font-bold text-slate-900">
+                  {totalQuestions} câu
+                </span>
               </div>
               <div className="flex justify-between text-emerald-700">
                 <span>Số câu đã trả lời:</span>
@@ -604,7 +778,10 @@ export default function ExamRoomPage() {
             {unansweredCount > 0 && (
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <span>Bạn vẫn còn {unansweredCount} câu hỏi chưa hoàn thành. Bạn có chắc chắn muốn nộp bài ngay lúc này?</span>
+                <span>
+                  Bạn vẫn còn {unansweredCount} câu hỏi chưa hoàn thành. Bạn có
+                  chắc chắn muốn nộp bài ngay lúc này?
+                </span>
               </div>
             )}
 
@@ -637,7 +814,6 @@ export default function ExamRoomPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
