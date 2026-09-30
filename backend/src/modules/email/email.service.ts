@@ -59,7 +59,7 @@ export class EmailService {
   }
 
   async sendAccountApprovalEmail(to: string, fullName: string, username: string, defaultPassword: string): Promise<boolean> {
-    const from = this.configService.get<string>('SMTP_FROM', 'no-reply@tracnghiem.local');
+    const from = this.configService.get<string>('SMTP_FROM', 'kythuatsdtc@gmail.com');
     const subject = `Tài khoản hệ thống của nhân viên đã được phê duyệt`;
     const text = `Kính gửi ${fullName},\n\nYêu cầu cấp tài khoản của nhân viên đã được phê duyệt.\n\nThông tin đăng nhập:\n- Tên đăng nhập: ${username}\n- Mật khẩu: ${defaultPassword}\n\nVui lòng đổi mật khẩu sau khi đăng nhập lần đầu tiên để bảo mật.`;
     const html = `
@@ -101,19 +101,19 @@ export class EmailService {
 
 try {
       // SỬA: Đính kèm hình ảnh và gán Content ID
-      await this.transporter.sendMail({ 
-        from, 
-        to, 
-        subject, 
-        text, 
+      await this.transporter.sendMail({
+        from,
+        to,
+        subject,
+        text,
         html,
-        attachments: [
-          {
-            filename: 'logo.png',
-            path: join(process.cwd(), 'public', 'logo.png'),
-            cid: 'bank_logo'
-          }
-        ]
+        // attachments: [
+        //   {
+        //     filename: 'logo.png',
+        //     path: join(process.cwd(), 'public', 'logo.png'),
+        //     cid: 'bank_logo'
+        //   }
+        // ]
       });
       this.logger.log(`✅ Email approval sent successfully to ${to}`);
       return true;
