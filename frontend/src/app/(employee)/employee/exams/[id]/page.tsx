@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { api } from '@/lib/api';
+import React, { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { api } from "@/lib/api";
 import {
   Award,
   Clock,
@@ -16,7 +16,7 @@ import {
   Calendar,
   Layers,
   FileQuestion,
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function EmployeeExamDetailPage() {
   const params = useParams();
@@ -26,7 +26,7 @@ export default function EmployeeExamDetailPage() {
   const [exam, setExam] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -36,7 +36,9 @@ export default function EmployeeExamDetailPage() {
         const res = await api.get(`/exams/${id}`);
         setExam(res.data);
       } catch (err: any) {
-        setErrorMessage(err.response?.data?.message || 'Không thể tải thông tin kỳ thi.');
+        setErrorMessage(
+          err.response?.data?.message || "Không thể tải thông tin kỳ thi.",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -46,30 +48,38 @@ export default function EmployeeExamDetailPage() {
 
   const handleStartExam = async () => {
     setIsStarting(true);
-    setErrorMessage('');
+    setErrorMessage("");
     try {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem
+          .requestFullscreen()
+          .catch((err) => console.log("Lỗi bật Fullscreen:", err));
+      }
+
       const res = await api.post(`/exams/${id}/start`);
       const attemptId = res.data?.id;
       if (attemptId) {
         router.push(`/employee/exam/${attemptId}`);
       } else {
-        throw new Error('Không nhận được mã lượt thi.');
+        throw new Error("Không nhận được mã lượt thi.");
       }
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Không thể bắt đầu làm bài thi.';
-      setErrorMessage(Array.isArray(msg) ? msg.join(', ') : msg);
+      const msg =
+        err.response?.data?.message || "Không thể bắt đầu làm bài thi.";
+      setErrorMessage(Array.isArray(msg) ? msg.join(", ") : msg);
       setIsStarting(false);
     }
   };
 
   const formatDateTime = (dateStr: string) => {
     try {
-      return new Date(dateStr).toLocaleString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+      return new Date(dateStr).toLocaleString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch {
       return dateStr;
@@ -89,8 +99,12 @@ export default function EmployeeExamDetailPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
         <AlertTriangle className="w-12 h-12 text-rose-500 mx-auto" />
-        <h2 className="text-lg font-bold text-slate-800">Không tìm thấy kỳ thi</h2>
-        <p className="text-xs text-slate-500">{errorMessage || 'Kỳ thi không tồn tại hoặc đã bị xóa.'}</p>
+        <h2 className="text-lg font-bold text-slate-800">
+          Không tìm thấy kỳ thi
+        </h2>
+        <p className="text-xs text-slate-500">
+          {errorMessage || "Kỳ thi không tồn tại hoặc đã bị xóa."}
+        </p>
         <Link
           href="/employee/exams"
           className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold"
@@ -132,7 +146,8 @@ export default function EmployeeExamDetailPage() {
             {exam.name}
           </h1>
           <p className="text-xs sm:text-sm text-blue-100 max-w-2xl">
-            {exam.description || 'Kỳ thi đánh giá năng lực nghiệp vụ nội bộ theo quy định công ty.'}
+            {exam.description ||
+              "Kỳ thi đánh giá năng lực nghiệp vụ nội bộ theo quy định công ty."}
           </p>
         </div>
 
@@ -148,7 +163,9 @@ export default function EmployeeExamDetailPage() {
         <div className="p-6 sm:p-8 space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
-              <span className="text-[11px] font-medium text-slate-400">Thời lượng làm bài</span>
+              <span className="text-[11px] font-medium text-slate-400">
+                Thời lượng làm bài
+              </span>
               <div className="flex items-center gap-1.5 text-base font-bold text-slate-800">
                 <Clock className="w-4 h-4 text-blue-600" />
                 <span>{exam.durationMinutes} phút</span>
@@ -156,7 +173,9 @@ export default function EmployeeExamDetailPage() {
             </div>
 
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
-              <span className="text-[11px] font-medium text-slate-400">Số lượng câu hỏi</span>
+              <span className="text-[11px] font-medium text-slate-400">
+                Số lượng câu hỏi
+              </span>
               <div className="flex items-center gap-1.5 text-base font-bold text-slate-800">
                 <FileQuestion className="w-4 h-4 text-emerald-600" />
                 <span>{exam.totalQuestions} câu</span>
@@ -164,7 +183,9 @@ export default function EmployeeExamDetailPage() {
             </div>
 
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
-              <span className="text-[11px] font-medium text-slate-400">Yêu cầu để đạt</span>
+              <span className="text-[11px] font-medium text-slate-400">
+                Yêu cầu để đạt
+              </span>
               <div className="flex items-center gap-1.5 text-base font-bold text-slate-800">
                 <CheckCircle2 className="w-4 h-4 text-purple-600" />
                 <span>≥ {exam.passingCorrectAnswers} câu</span>
@@ -172,7 +193,9 @@ export default function EmployeeExamDetailPage() {
             </div>
 
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
-              <span className="text-[11px] font-medium text-slate-400">Số lượt thi tối đa</span>
+              <span className="text-[11px] font-medium text-slate-400">
+                Số lượt thi tối đa
+              </span>
               <div className="flex items-center gap-1.5 text-base font-bold text-slate-800">
                 <Layers className="w-4 h-4 text-amber-600" />
                 <span>{exam.maxAttempts || 1} lượt</span>
@@ -188,60 +211,84 @@ export default function EmployeeExamDetailPage() {
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-600">
               <div>
-                <span className="font-semibold text-slate-700">Bắt đầu mở đề:</span>{' '}
+                <span className="font-semibold text-slate-700">
+                  Bắt đầu mở đề:
+                </span>{" "}
                 {formatDateTime(exam.openAt)}
               </div>
               <div>
-                <span className="font-semibold text-slate-700">Đóng phòng thi:</span>{' '}
+                <span className="font-semibold text-slate-700">
+                  Đóng phòng thi:
+                </span>{" "}
                 {formatDateTime(exam.closeAt)}
               </div>
             </div>
           </div>
 
-            {/* Rules & Anti-Cheating Warning */}
-            <div className="p-4 bg-amber-50/60 border border-amber-200 rounded-xl text-xs space-y-2.5 text-amber-900">
-              <h4 className="font-bold flex items-center gap-1.5 text-amber-800">
-                <ShieldAlert className="w-4 h-4 text-amber-600" />
-                <span>Quy định & Kỷ luật phòng thi trực tuyến</span>
-              </h4>
-              <ul className="list-disc list-inside space-y-1.5 text-amber-800/90 text-[11px] leading-relaxed">
+          {/* Rules & Anti-Cheating Warning */}
+          <div className="p-4 bg-amber-50/60 border border-amber-200 rounded-xl text-xs space-y-2.5 text-amber-900">
+            <h4 className="font-bold flex items-center gap-1.5 text-amber-800">
+              <ShieldAlert className="w-4 h-4 text-amber-600" />
+              <span>Quy định & Kỷ luật phòng thi trực tuyến</span>
+            </h4>
+            <ul className="list-disc list-inside space-y-1.5 text-amber-800/90 text-[11px] leading-relaxed">
+              <li>
+                <strong>Tự động lưu bài:</strong> Hệ thống tự động ghi nhận đáp
+                án của bạn ngay khi bấm chọn. Nếu gặp sự cố mạng, bài làm vẫn
+                được lưu an toàn trên máy chủ.
+              </li>
+              {exam.tabDetectionEnabled && (
                 <li>
-                  <strong>Tự động lưu bài:</strong> Hệ thống tự động ghi nhận đáp án của bạn ngay khi bấm chọn. Nếu gặp sự cố mạng, bài làm vẫn được lưu an toàn trên máy chủ.
+                  {exam.maxTabSwitches === 0 ? (
+                    <span className="text-rose-700 font-bold">
+                      CẤM TUYỆT ĐỐI CHUYỂN TAB (Zero Tolerance): Kỳ thi hoàn
+                      toàn nghiêm cấm hành vi chuyển tab hoặc rời ứng dụng. Rời
+                      màn hình dù chỉ 1 lần sẽ bị hệ thống TỰ ĐỘNG THU NỘP BÀI
+                      NGAY LẬP TỨC và phát cảnh báo tới Admin!
+                    </span>
+                  ) : (
+                    <span>
+                      <strong>Chống gian lận chuyển tab:</strong> Hệ thống giám
+                      sát rời màn hình hoặc chuyển tab. Nếu chuyển tab quá{" "}
+                      <strong className="text-rose-700">
+                        {exam.maxTabSwitches} lần
+                      </strong>
+                      , bài thi sẽ bị{" "}
+                      <strong className="text-rose-700">
+                        tự động thu nộp ngay lập tức
+                      </strong>
+                      .
+                    </span>
+                  )}
                 </li>
-                {exam.tabDetectionEnabled && (
-                  <li>
-                    {exam.maxTabSwitches === 0 ? (
-                      <span className="text-rose-700 font-bold">
-                        CẤM TUYỆT ĐỐI CHUYỂN TAB (Zero Tolerance): Kỳ thi hoàn toàn nghiêm cấm hành vi chuyển tab hoặc rời ứng dụng. Rời màn hình dù chỉ 1 lần sẽ bị hệ thống TỰ ĐỘNG THU NỘP BÀI NGAY LẬP TỨC và phát cảnh báo tới Admin!
-                      </span>
-                    ) : (
-                      <span>
-                        <strong>Chống gian lận chuyển tab:</strong> Hệ thống giám sát rời màn hình hoặc chuyển tab. Nếu chuyển tab quá{' '}
-                        <strong className="text-rose-700">{exam.maxTabSwitches} lần</strong>, bài thi sẽ bị{' '}
-                        <strong className="text-rose-700">tự động thu nộp ngay lập tức</strong>.
-                      </span>
-                    )}
-                  </li>
-                )}
-                <li>
-                  <strong>Giới hạn số lượt thi:</strong> Mỗi thí sinh được phép tham gia tối đa{' '}
-                  <strong className="text-purple-700">{exam.maxAttempts || 1} lượt thi</strong>. Sau khi nộp đủ số lượt quy định, hệ thống sẽ tự động khóa quyền làm bài.
-                </li>
-                <li>
-                  <strong>Thời hạn làm bài:</strong> Đồng hồ đếm ngược do máy chủ tính toán chính xác. Khi hết giờ, bài thi sẽ tự động thu nộp.
-                </li>
-              </ul>
-            </div>
+              )}
+              <li>
+                <strong>Giới hạn số lượt thi:</strong> Mỗi thí sinh được phép
+                tham gia tối đa{" "}
+                <strong className="text-purple-700">
+                  {exam.maxAttempts || 1} lượt thi
+                </strong>
+                . Sau khi nộp đủ số lượt quy định, hệ thống sẽ tự động khóa
+                quyền làm bài.
+              </li>
+              <li>
+                <strong>Thời hạn làm bài:</strong> Đồng hồ đếm ngược do máy chủ
+                tính toán chính xác. Khi hết giờ, bài thi sẽ tự động thu nộp.
+              </li>
+            </ul>
+          </div>
 
           {/* Start Button */}
           <div className="pt-2">
             {exam.isOutOfAttempts ? (
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-center space-y-2">
                 <div className="text-sm font-bold text-amber-900">
-                  Bạn Đã Sử Dụng Hết {exam.maxAttempts || 1} Lượt Thi Cho Kỳ Thi Này
+                  Bạn Đã Sử Dụng Hết {exam.maxAttempts || 1} Lượt Thi Cho Kỳ Thi
+                  Này
                 </div>
                 <p className="text-xs text-amber-700">
-                  Hệ thống đã ghi nhận các bài làm của bạn. Bạn không thể làm thêm lượt thi mới.
+                  Hệ thống đã ghi nhận các bài làm của bạn. Bạn không thể làm
+                  thêm lượt thi mới.
                 </p>
                 <div className="pt-1">
                   <Link
@@ -272,11 +319,13 @@ export default function EmployeeExamDetailPage() {
               </button>
             ) : isUpcoming ? (
               <div className="p-4 bg-slate-100 rounded-xl text-center text-xs font-semibold text-slate-500">
-                Kỳ thi chưa đến thời gian mở đề. Vui lòng quay lại vào lúc {formatDateTime(exam.openAt)}.
+                Kỳ thi chưa đến thời gian mở đề. Vui lòng quay lại vào lúc{" "}
+                {formatDateTime(exam.openAt)}.
               </div>
             ) : (
               <div className="p-4 bg-slate-100 rounded-xl text-center text-xs font-semibold text-slate-500">
-                Kỳ thi đã kết thúc thời gian làm bài ({formatDateTime(exam.closeAt)}).
+                Kỳ thi đã kết thúc thời gian làm bài (
+                {formatDateTime(exam.closeAt)}).
               </div>
             )}
           </div>

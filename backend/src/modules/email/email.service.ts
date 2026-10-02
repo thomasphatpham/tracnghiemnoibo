@@ -66,7 +66,7 @@ export class EmailService {
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         
         <div style="background-color: #FFFFFF; padding: 25px 20px; text-align: center;">
-          <img src="cid:bank_logo" alt="Bank Logo" style="width: 80px; height: auto; margin-bottom: 10px;">
+          <img src="https://zhtjcvtwfybeyuezxzvk.supabase.co/storage/v1/object/sign/file/Logo.png?token=eyJraWQiOiI0M2YyMGQ5Yi00YmRlLTRiYTUtOGY2YS1jOWIxNzFlYWRlZmEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJmaWxlL0xvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDkwOTAwOCwiZXhwIjozOTk4NDI5MDA4fQ.o1321ue_m944FcxG4VUXgBE7lF2FI1HOipPBvMqo2mY" alt="Bank Logo" style="width: 80px; height: auto; margin-bottom: 10px;">
           <h2 style="color: #003366; margin: 0; font-size: 20px; font-weight: 600; text-transform: uppercase;">Ngân Hàng Trắc Nghiệm</h2>
         </div>
         
