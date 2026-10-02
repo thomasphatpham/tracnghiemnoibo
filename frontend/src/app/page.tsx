@@ -1,6 +1,9 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import IntroVideo from '@/components/IntroVideo';
 import {
   ArrowRight,
   Phone,
@@ -16,13 +19,39 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
+  const [showIntro, setShowIntro] = useState(true);
+
+  useEffect(() => {
+    // Nếu trong phiên này đã xem intro rồi thì tắt intro để hiện giao diện ngay
+    const hasSeen = sessionStorage.getItem('has_seen_entry_intro');
+    if (hasSeen) {
+      setShowIntro(false);
+    }
+  }, []);
+
+  const handleIntroFinished = () => {
+    sessionStorage.setItem('has_seen_entry_intro', 'true');
+    setShowIntro(false);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
-      {/* Top Header */}
-      <header className="border-b border-slate-200 bg-white sticky top-0 z-40 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 bg-white rounded-lg p-1 border border-slate-200 shadow-xs flex items-center justify-center overflow-hidden">
+    <>
+      {showIntro && (
+        <IntroVideo
+          onFinished={handleIntroFinished}
+          targetDurationSeconds={1.0}
+        />
+      )}
+      <div
+        className={`min-h-screen flex flex-col bg-slate-50 text-slate-800 transition-opacity duration-500 ${
+          showIntro ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
+        {/* Top Header */}
+        <header className="border-b border-slate-200 bg-white sticky top-0 z-40 shadow-xs">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 bg-white rounded-lg p-1 border border-slate-200 shadow-xs flex items-center justify-center overflow-hidden">
               <Image
                 src="/logo_saigonbank.jpg"
                 alt="Saigonbank Logo"
@@ -45,7 +74,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#2e3e98] hover:bg-[#24327d] text-white text-sm font-semibold shadow-sm transition"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0066B1] hover:bg-[#24327d] text-white text-sm font-semibold shadow-sm transition"
             >
               <span>Vào Đăng Nhập</span>
               <ArrowRight className="w-4 h-4" />
@@ -132,7 +161,7 @@ export default function HomePage() {
                   />
                 </div>
                 <div>
-                  <h3 className="text-xl font-extrabold text-[#2e3e98] tracking-tight uppercase">
+                  <h3 className="text-xl font-extrabold text-[#0066B1] tracking-tight uppercase">
                     CỔNG TRUY CẬP HỆ THỐNG
                   </h3>
                   <p className="text-xs text-slate-500 font-medium mt-1">
@@ -169,7 +198,7 @@ export default function HomePage() {
               <div className="pt-2 space-y-3">
                 <Link
                   href="/request-account"
-                  className="group flex items-center justify-between w-full py-4 px-6 rounded-xl bg-[#2e3e98] hover:bg-[#233075] text-white font-bold text-base shadow-lg shadow-blue-950/20 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
+                  className="group flex items-center justify-between w-full py-4 px-6 rounded-xl bg-[#0066B1] hover:bg-[#233075] text-white font-bold text-base shadow-lg shadow-blue-950/20 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
                 >
                   <div className="flex items-center gap-3">
                     <UserPlus className="w-5 h-5 text-blue-200" />
@@ -197,5 +226,6 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
+    </>
   );
 }

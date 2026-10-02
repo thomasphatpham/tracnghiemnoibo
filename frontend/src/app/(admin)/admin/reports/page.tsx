@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { api } from '@/lib/api';
 import Pagination from '@/components/Pagination';
 import {
@@ -59,7 +59,7 @@ export default function AdminReportsPage() {
   const [isExportingOverview, setIsExportingOverview] = useState(false);
 
   // Fetch Summary
-  const fetchSummary = async () => {
+  const fetchSummary = useCallback(async () => {
     setIsSummaryLoading(true);
     try {
       const res = await api.get('/reports/summary');
@@ -69,10 +69,10 @@ export default function AdminReportsPage() {
     } finally {
       setIsSummaryLoading(false);
     }
-  };
+  }, []);
 
   // Fetch Exams Report
-  const fetchExams = async () => {
+  const fetchExams = useCallback(async () => {
     setIsExamsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -89,10 +89,10 @@ export default function AdminReportsPage() {
     } finally {
       setIsExamsLoading(false);
     }
-  };
+  }, [examPage, examPageSize, examSearch]);
 
   // Fetch Departments Report
-  const fetchDepartments = async () => {
+  const fetchDepartments = useCallback(async () => {
     setIsDeptsLoading(true);
     try {
       const res = await api.get('/reports/departments');
@@ -102,11 +102,11 @@ export default function AdminReportsPage() {
     } finally {
       setIsDeptsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchSummary();
-  }, []);
+  }, [fetchSummary]);
 
   useEffect(() => {
     if (activeTab === 'exams') {
@@ -114,7 +114,7 @@ export default function AdminReportsPage() {
     } else {
       fetchDepartments();
     }
-  }, [activeTab, examPage, examPageSize]);
+  }, [activeTab, fetchExams, fetchDepartments]);
 
   const handleExamSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -210,7 +210,7 @@ export default function AdminReportsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-[#2e3e98]" />
+            <BarChart3 className="w-6 h-6 text-[#0066B1]" />
             <span>Báo Cáo & Thống Kê Kết Quả Thi</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -235,7 +235,7 @@ export default function AdminReportsPage() {
           <button
             onClick={handleExportOverview}
             disabled={isExportingOverview}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#2e3e98] hover:bg-[#233075] text-white rounded-lg text-xs font-semibold shadow-sm transition cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#0066B1] hover:bg-[#233075] text-white rounded-lg text-xs font-semibold shadow-sm transition cursor-pointer disabled:opacity-50"
           >
             {isExportingOverview ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -258,7 +258,7 @@ export default function AdminReportsPage() {
             </div>
             <span className="text-[11px] text-slate-400 mt-0.5 block">Kỳ thi đã tạo trên hệ thống</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#2e3e98] flex items-center justify-center font-bold">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#0066B1] flex items-center justify-center font-bold">
             <FileText className="w-6 h-6" />
           </div>
         </div>
@@ -326,7 +326,7 @@ export default function AdminReportsPage() {
           onClick={() => setActiveTab('exams')}
           className={`flex items-center gap-2 py-3 px-5 text-xs font-bold uppercase tracking-wider border-b-2 transition cursor-pointer ${
             activeTab === 'exams'
-              ? 'border-[#2e3e98] text-[#2e3e98] bg-blue-50/40'
+              ? 'border-[#0066B1] text-[#0066B1] bg-blue-50/40'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -338,7 +338,7 @@ export default function AdminReportsPage() {
           onClick={() => setActiveTab('departments')}
           className={`flex items-center gap-2 py-3 px-5 text-xs font-bold uppercase tracking-wider border-b-2 transition cursor-pointer ${
             activeTab === 'departments'
-              ? 'border-[#2e3e98] text-[#2e3e98] bg-blue-50/40'
+              ? 'border-[#0066B1] text-[#0066B1] bg-blue-50/40'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -359,7 +359,7 @@ export default function AdminReportsPage() {
                 placeholder="Tìm kiếm theo tên kỳ thi..."
                 value={examSearch}
                 onChange={(e) => setExamSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2e3e98]/30 focus:border-[#2e3e98]"
+                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0066B1]/30 focus:border-[#0066B1]"
               />
             </form>
             <span className="text-xs text-slate-400">
@@ -371,7 +371,7 @@ export default function AdminReportsPage() {
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             {isExamsLoading ? (
               <div className="py-20 flex flex-col items-center justify-center gap-2">
-                <Loader2 className="w-7 h-7 animate-spin text-[#2e3e98]" />
+                <Loader2 className="w-7 h-7 animate-spin text-[#0066B1]" />
                 <p className="text-xs text-slate-500">Đang tổng hợp số liệu kỳ thi...</p>
               </div>
             ) : exams.length === 0 ? (
@@ -460,7 +460,7 @@ export default function AdminReportsPage() {
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => openExamDetails(ex)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#2e3e98] rounded-md text-xs font-semibold transition cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#0066B1] rounded-md text-xs font-semibold transition cursor-pointer"
                               title="Xem danh sách thí sinh đã thi"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -503,7 +503,7 @@ export default function AdminReportsPage() {
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           {isDeptsLoading ? (
             <div className="py-20 flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-7 h-7 animate-spin text-[#2e3e98]" />
+              <Loader2 className="w-7 h-7 animate-spin text-[#0066B1]" />
               <p className="text-xs text-slate-500">Đang tổng hợp dữ liệu phòng ban...</p>
             </div>
           ) : departments.length === 0 ? (
@@ -528,7 +528,7 @@ export default function AdminReportsPage() {
                 <tbody className="divide-y divide-slate-100">
                   {departments.map((d) => (
                     <tr key={d.id} className="hover:bg-slate-50 transition">
-                      <td className="py-3 px-4 font-mono font-bold text-[#2e3e98]">{d.code}</td>
+                      <td className="py-3 px-4 font-mono font-bold text-[#0066B1]">{d.code}</td>
                       <td className="py-3 px-4 font-medium text-slate-900">{d.name}</td>
                       <td className="py-3 px-3 text-center font-bold text-slate-700">{d.totalUsers}</td>
                       <td className="py-3 px-3 text-center font-bold text-slate-800">{d.completedAttempts}</td>
@@ -542,7 +542,7 @@ export default function AdminReportsPage() {
                         <div className="flex items-center justify-center gap-2">
                           <div className="w-24 bg-slate-200 rounded-full h-2 overflow-hidden">
                             <div
-                              className="bg-[#2e3e98] h-2 rounded-full"
+                              className="bg-[#0066B1] h-2 rounded-full"
                               style={{ width: `${Math.min(100, d.passRate)}%` }}
                             />
                           </div>
@@ -566,7 +566,7 @@ export default function AdminReportsPage() {
             <div className="p-5 border-b border-slate-200 flex items-start justify-between bg-slate-50/70">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-[#2e3e98]">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-[#0066B1]">
                     KỲ THI
                   </span>
                   <h2 className="text-lg font-bold text-slate-900 leading-tight">{selectedExam.name}</h2>
@@ -609,7 +609,7 @@ export default function AdminReportsPage() {
                   placeholder="Tìm theo họ tên, tài khoản, phòng ban..."
                   value={candidateSearch}
                   onChange={(e) => setCandidateSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2e3e98]/30"
+                  className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0066B1]/30"
                 />
               </div>
 
@@ -625,7 +625,7 @@ export default function AdminReportsPage() {
                     onClick={() => setCandidateStatusFilter(f.key)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer whitespace-nowrap ${
                       candidateStatusFilter === f.key
-                        ? 'bg-[#2e3e98] text-white shadow-xs'
+                        ? 'bg-[#0066B1] text-white shadow-xs'
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
                     }`}
                   >
@@ -639,7 +639,7 @@ export default function AdminReportsPage() {
             <div className="overflow-y-auto flex-1 p-4">
               {isCandidatesLoading ? (
                 <div className="py-20 flex flex-col items-center justify-center gap-2">
-                  <Loader2 className="w-7 h-7 animate-spin text-[#2e3e98]" />
+                  <Loader2 className="w-7 h-7 animate-spin text-[#0066B1]" />
                   <p className="text-xs text-slate-500">Đang tải danh sách thí sinh...</p>
                 </div>
               ) : filteredCandidates.length === 0 ? (

@@ -826,10 +826,10 @@ export default function EditExamPage({
                   return (
                     <div key={d.id} className="flex items-center gap-4">
                       <div className="w-28 flex-shrink-0">
-                        <p className="text-xs font-mono font-bold text-slate-800">
+                        <p className="text-[11px] text-slate-500 truncate">
                           [{d.code}]
                         </p>
-                        <p className="text-[11px] text-slate-500 truncate">
+                        <p className="text-xs font-mono font-bold text-slate-800">
                           {d.name}
                         </p>
                       </div>
@@ -1107,7 +1107,7 @@ export default function EditExamPage({
                 <button
                   type="submit"
                   disabled={isLoading || !isPercentageValid || isDeleting}
-                  className="px-5 py-2 bg-[#2e3e98] hover:bg-[#233075] text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 bg-[#0066B1] hover:bg-[#233075] text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isLoading && (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />

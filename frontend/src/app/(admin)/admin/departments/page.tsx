@@ -111,7 +111,7 @@ export default function AdminDepartmentsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || (modalMode === 'create' && !code.trim())) {
+    if (!name.trim() || !code.trim()) {
       setErrorMessage('Vui lòng điền đầy đủ mã và tên phòng ban.');
       return;
     }
@@ -127,6 +127,7 @@ export default function AdminDepartmentsPage() {
         });
       } else {
         await api.patch(`/departments/${editId}`, {
+          code: code.trim().toUpperCase(),
           name: name.trim(),
         });
       }
@@ -145,7 +146,7 @@ export default function AdminDepartmentsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-[#2e3e98]" />
+            <Building2 className="w-6 h-6 text-[#0066B1]" />
             <span>Quản Lý Phòng Ban</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -164,13 +165,13 @@ export default function AdminDepartmentsPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#2e3e98]/30 focus:border-[#2e3e98] w-64 shadow-xs"
+              className="pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#0066B1]/30 focus:border-[#0066B1] w-64 shadow-xs"
             />
           </div>
 
           <Link
             href="/admin/departments/import"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 text-[#2e3e98] hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 text-[#0066B1] hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-semibold shadow-xs transition cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4" />
             <span>Import Excel</span>
@@ -178,7 +179,7 @@ export default function AdminDepartmentsPage() {
 
           <button
             onClick={openCreateModal}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#2e3e98] hover:bg-[#233075] text-white rounded-lg text-xs font-semibold shadow-sm transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#0066B1] hover:bg-[#233075] text-white rounded-lg text-xs font-semibold shadow-sm transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Thêm Phòng Ban Mới</span>
@@ -190,7 +191,7 @@ export default function AdminDepartmentsPage() {
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="py-20 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#2e3e98]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#0066B1]" />
             <p className="text-xs text-slate-500">Đang tải danh sách phòng ban...</p>
           </div>
         ) : departments.length === 0 ? (
@@ -199,7 +200,7 @@ export default function AdminDepartmentsPage() {
             <p className="text-sm font-semibold text-slate-700">Chưa có phòng ban nào</p>
             <button
               onClick={openCreateModal}
-              className="mt-3 text-xs text-[#2e3e98] font-semibold hover:underline"
+              className="mt-3 text-xs text-[#0066B1] font-semibold hover:underline"
             >
               + Tạo phòng ban đầu tiên
             </button>
@@ -254,7 +255,7 @@ export default function AdminDepartmentsPage() {
                       <td className="py-3 px-4 text-right space-x-2">
                         <button
                           onClick={() => openEditModal(d)}
-                          className="p-1.5 text-slate-500 hover:text-[#2e3e98] hover:bg-blue-50 rounded transition cursor-pointer"
+                          className="p-1.5 text-slate-500 hover:text-[#0066B1] hover:bg-blue-50 rounded transition cursor-pointer"
                           title="Sửa tên phòng ban"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -314,11 +315,10 @@ export default function AdminDepartmentsPage() {
                 <input
                   type="text"
                   required
-                  disabled={modalMode === 'edit'}
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   placeholder="VD: TECH, SALES, HR..."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 

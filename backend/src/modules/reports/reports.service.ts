@@ -330,7 +330,7 @@ export class ReportsService {
     sheet.mergeCells('A1:I1');
     const titleCell = sheet.getCell('A1');
     titleCell.value = `BÁO CÁO KẾT QUẢ KỲ THI: ${exam.name.toUpperCase()}`;
-    titleCell.font = { bold: true, size: 14, color: { argb: 'FF2E3E98' } };
+    titleCell.font = { bold: true, size: 14, color: { argb: 'FF0066B1' } };
     titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
     sheet.getRow(1).height = 35;
 
@@ -372,7 +372,7 @@ export class ReportsService {
     headerRow.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF2E3E98' }, // Saigonbank Navy Blue
+      fgColor: { argb: 'FF0066B1' }, // Saigonbank Navy Blue
     };
     headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
     headerRow.height = 28;
@@ -450,7 +450,7 @@ export class ReportsService {
     sheet.mergeCells('A1:I1');
     const titleCell = sheet.getCell('A1');
     titleCell.value = 'BÁO CÁO TỔNG HỢP KẾT QUẢ CÁC KỲ THI TRẮC NGHIỆM';
-    titleCell.font = { bold: true, size: 14, color: { argb: 'FF2E3E98' } };
+    titleCell.font = { bold: true, size: 14, color: { argb: 'FF0066B1' } };
     titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
     sheet.getRow(1).height = 35;
 
@@ -472,7 +472,7 @@ export class ReportsService {
     headerRow.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF2E3E98' },
+      fgColor: { argb: 'FF0066B1' },
     };
     headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
     headerRow.height = 28;

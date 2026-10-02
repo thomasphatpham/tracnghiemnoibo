@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200/90 p-8 space-y-6 animate-scale-in">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 bg-[#2e3e98] text-white rounded-xl flex items-center justify-center mx-auto shadow-md shadow-blue-900/20">
+          <div className="w-12 h-12 bg-[#0066B1] text-white rounded-xl flex items-center justify-center mx-auto shadow-md shadow-blue-900/20">
             <KeyRound className="w-7 h-7" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
@@ -138,7 +138,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 px-4 bg-[#2e3e98] hover:bg-[#233075] active:bg-[#1a2459] text-white font-semibold text-sm rounded-lg shadow-md shadow-blue-900/20 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full py-2.5 px-4 bg-[#0066B1] hover:bg-[#233075] active:bg-[#1a2459] text-white font-semibold text-sm rounded-lg shadow-md shadow-blue-900/20 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isLoading ? (
                 <>
@@ -213,7 +213,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 px-4 bg-[#2e3e98] hover:bg-[#233075] active:bg-[#1a2459] text-white font-semibold text-sm rounded-lg shadow-md shadow-blue-900/20 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full py-2.5 px-4 bg-[#0066B1] hover:bg-[#233075] active:bg-[#1a2459] text-white font-semibold text-sm rounded-lg shadow-md shadow-blue-900/20 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isLoading ? (
                 <>

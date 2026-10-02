@@ -85,7 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={item.href}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
                   isActive
-                    ? 'bg-[#2e3e98] text-white shadow-md shadow-blue-950/40 translate-x-1'
+                    ? 'bg-[#0066B1] text-white shadow-md shadow-blue-950/40 translate-x-1'
                     : 'text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
               >
@@ -100,7 +100,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-4 border-t border-[#1e2a5c] bg-[#0f1738]/60">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2.5 truncate min-w-0">
-              <div className="w-8 h-8 rounded-full bg-[#2e3e98] border border-blue-400/40 flex items-center justify-center text-white font-bold text-xs shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#0066B1] border border-blue-400/40 flex items-center justify-center text-white font-bold text-xs shrink-0">
                 {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'A'}
               </div>
               <div className="truncate">
@@ -124,13 +124,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Top Navbar */}
         <header className="h-16 bg-white border-b border-slate-200/80 flex items-center justify-between px-8 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-[#2e3e98] ring-4 ring-blue-100 animate-pulse"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-[#0066B1] ring-4 ring-blue-100 animate-pulse"></div>
             <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
               Hệ Thống Quản Trị Khảo Thí SAIGONBANK
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-[#2e3e98] border border-blue-200/80">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-[#0066B1] border border-blue-200/80">
               QUẢN TRỊ VIÊN
             </span>
             <span className="text-xs font-semibold text-slate-800">{user.fullName}</span>

@@ -67,8 +67,8 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
                     href="/employee/dashboard"
                     className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
                       pathname === '/employee/dashboard'
-                        ? 'text-[#2e3e98] bg-blue-50 border border-blue-200/60 shadow-xs'
-                        : 'text-slate-600 hover:text-[#2e3e98] hover:bg-slate-100'
+                        ? 'text-[#0066B1] bg-blue-50 border border-blue-200/60 shadow-xs'
+                        : 'text-slate-600 hover:text-[#0066B1] hover:bg-slate-100'
                     }`}
                   >
                     Bảng Điều Khiển
@@ -77,8 +77,8 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
                     href="/employee/exams"
                     className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
                       pathname.startsWith('/employee/exams')
-                        ? 'text-[#2e3e98] bg-blue-50 border border-blue-200/60 shadow-xs'
-                        : 'text-slate-600 hover:text-[#2e3e98] hover:bg-slate-100'
+                        ? 'text-[#0066B1] bg-blue-50 border border-blue-200/60 shadow-xs'
+                        : 'text-slate-600 hover:text-[#0066B1] hover:bg-slate-100'
                     }`}
                   >
                     Kỳ Thi Của Tôi
@@ -87,8 +87,8 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
                     href="/employee/profile"
                     className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
                       pathname === '/employee/profile'
-                        ? 'text-[#2e3e98] bg-blue-50 border border-blue-200/60 shadow-xs'
-                        : 'text-slate-600 hover:text-[#2e3e98] hover:bg-slate-100'
+                        ? 'text-[#0066B1] bg-blue-50 border border-blue-200/60 shadow-xs'
+                        : 'text-slate-600 hover:text-[#0066B1] hover:bg-slate-100'
                     }`}
                   >
                     Hồ Sơ Cá Nhân
@@ -100,7 +100,7 @@ export default function EmployeeLayout({ children }: { children: React.ReactNode
             {/* User Profile & Logout */}
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2.5 text-right hidden sm:flex">
-                <div className="w-8 h-8 rounded-full bg-[#2e3e98] text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                <div className="w-8 h-8 rounded-full bg-[#0066B1] text-white flex items-center justify-center text-xs font-bold shadow-xs">
                   {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div>

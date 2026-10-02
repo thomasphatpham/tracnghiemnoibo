@@ -60,7 +60,7 @@ export default function AdminDashboardPage() {
       label: 'Tổng Người Dùng',
       value: stats.totalUsers,
       icon: Users,
-      color: 'bg-[#2e3e98] text-white',
+      color: 'bg-[#0066B1] text-white',
       link: '/admin/users',
     },
     {
@@ -98,7 +98,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-stagger">
         {statCards.map((card, idx) => {
           const Icon = card.icon;
           return (

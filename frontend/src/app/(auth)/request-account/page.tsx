@@ -113,7 +113,7 @@ export default function RequestAccountPage() {
           <div className="text-[11px] font-bold uppercase tracking-wider text-blue-700">
             NGÂN HÀNG TMCP SÀI GÒN CÔNG THƯƠNG (SAIGONBANK)
           </div>
-          <h1 className="text-2xl font-extrabold text-[#2e3e98] tracking-tight">
+          <h1 className="text-2xl font-extrabold text-[#0066B1] tracking-tight">
             YÊU CẦU CẤP TÀI KHOẢN
           </h1>
           <p className="text-xs text-slate-500 font-medium">
@@ -146,7 +146,7 @@ export default function RequestAccountPage() {
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
                 href="/login"
-                className="w-full sm:w-auto px-6 py-2.5 bg-[#2e3e98] hover:bg-[#233075] text-white rounded-xl text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 py-2.5 bg-[#0066B1] hover:bg-[#233075] text-white rounded-xl text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2"
               >
                 <Lock className="w-4 h-4" />
                 <span>Đến trang đăng nhập</span>
@@ -275,7 +275,7 @@ export default function RequestAccountPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 px-4 rounded-xl bg-[#2e3e98] hover:bg-[#233075] text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-lg shadow-blue-950/20 transition disabled:opacity-50"
+                className="w-full py-3.5 px-4 rounded-xl bg-[#0066B1] hover:bg-[#233075] text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-lg shadow-blue-950/20 transition disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>

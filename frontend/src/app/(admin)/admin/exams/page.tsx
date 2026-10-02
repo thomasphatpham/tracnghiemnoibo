@@ -372,12 +372,7 @@ export default function AdminExamsPage() {
                             {exam.description}
                           </div>
                         )}
-                        <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-400">
-                          <span className="font-medium text-blue-600">
-                            {exam._count?.attempts || 0}
-                          </span>{" "}
-                          lượt nộp bài
-                        </div>
+                        
                       </td>
 
                       {/* Candidate Scope */}
@@ -404,6 +399,12 @@ export default function AdminExamsPage() {
                             </span>
                           </span>
                         )}
+                        <div className="flex items-center justify-center gap-2 mt-1.5 text-[11px] text-slate-400">
+                          <span className="font-medium text-blue-600">
+                            {exam._count?.attempts || 0}
+                          </span>{" "}
+                          lượt nộp bài
+                        </div>
                       </td>
 
                       <td className="px-4 py-4 whitespace-nowrap">

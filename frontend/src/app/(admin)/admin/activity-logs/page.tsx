@@ -183,7 +183,7 @@ export default function ActivityLogsPage() {
   // Detail Modal
   const [selectedLog, setSelectedLog] = useState<AuditLogItem | null>(null);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       setIsStatsLoading(true);
       const res = await api.get('/audit-logs/stats');
@@ -193,7 +193,7 @@ export default function ActivityLogsPage() {
     } finally {
       setIsStatsLoading(false);
     }
-  };
+  }, []);
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -222,7 +222,7 @@ export default function ActivityLogsPage() {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [fetchStats]);
 
   useEffect(() => {
     fetchLogs();
@@ -255,7 +255,7 @@ export default function ActivityLogsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-50 text-[#2e3e98] rounded-xl border border-blue-100">
+            <div className="p-2.5 bg-blue-50 text-[#0066B1] rounded-xl border border-blue-100">
               <History className="w-6 h-6" />
             </div>
             <div>
@@ -274,7 +274,7 @@ export default function ActivityLogsPage() {
             fetchLogs();
           }}
           disabled={isLoading}
-          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#2e3e98] bg-blue-50 hover:bg-blue-100 border border-blue-200/60 rounded-xl transition-all shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-[#0066B1] bg-blue-50 hover:bg-blue-100 border border-blue-200/60 rounded-xl transition-all shadow-sm"
         >
           <RotateCcw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           Làm mới dữ liệu
@@ -292,7 +292,7 @@ export default function ActivityLogsPage() {
             </h3>
             <p className="text-[11px] text-blue-600 font-medium mt-0.5">Tổng số lượt ghi nhận</p>
           </div>
-          <div className="p-3 bg-blue-50 text-[#2e3e98] rounded-xl border border-blue-100">
+          <div className="p-3 bg-blue-50 text-[#0066B1] rounded-xl border border-blue-100">
             <Clock className="w-6 h-6" />
           </div>
         </div>
@@ -344,7 +344,7 @@ export default function ActivityLogsPage() {
       <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
-            <Filter className="w-4 h-4 text-[#2e3e98]" />
+            <Filter className="w-4 h-4 text-[#0066B1]" />
             Bộ lọc & Tìm kiếm
           </div>
           {(search || actionFilter !== 'ALL' || startDate || endDate) && (
@@ -370,7 +370,7 @@ export default function ActivityLogsPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2e3e98]/20 focus:border-[#2e3e98] transition-all"
+              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066B1]/20 focus:border-[#0066B1] transition-all"
             />
           </div>
 
@@ -382,7 +382,7 @@ export default function ActivityLogsPage() {
                 setActionFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2e3e98]/20 focus:border-[#2e3e98] transition-all font-medium text-slate-700"
+              className="w-full px-3 py-2 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066B1]/20 focus:border-[#0066B1] transition-all font-medium text-slate-700"
             >
               <option value="ALL">-- Tất cả loại hành động --</option>
               <optgroup label="Xác thực & Bảo mật">
@@ -437,7 +437,7 @@ export default function ActivityLogsPage() {
                 setPage(1);
               }}
               title="Từ ngày"
-              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2e3e98]/20 focus:border-[#2e3e98] transition-all text-slate-700"
+              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066B1]/20 focus:border-[#0066B1] transition-all text-slate-700"
             />
           </div>
 
@@ -454,7 +454,7 @@ export default function ActivityLogsPage() {
                 setPage(1);
               }}
               title="Đến ngày"
-              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2e3e98]/20 focus:border-[#2e3e98] transition-all text-slate-700"
+              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066B1]/20 focus:border-[#0066B1] transition-all text-slate-700"
             />
           </div>
         </div>
@@ -488,7 +488,7 @@ export default function ActivityLogsPage() {
                 <tr>
                   <td colSpan={6} className="py-16 text-center">
                     <div className="inline-flex flex-col items-center gap-2">
-                      <Loader2 className="w-7 h-7 text-[#2e3e98] animate-spin" />
+                      <Loader2 className="w-7 h-7 text-[#0066B1] animate-spin" />
                       <p className="text-xs text-slate-500 font-medium">Đang tải lịch sử hoạt động...</p>
                     </div>
                   </td>
@@ -524,7 +524,7 @@ export default function ActivityLogsPage() {
                       <td className="py-3.5 px-4">
                         {item.user ? (
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-blue-50 text-[#2e3e98] border border-blue-100 flex items-center justify-center font-bold text-xs uppercase shrink-0">
+                            <div className="w-7 h-7 rounded-full bg-blue-50 text-[#0066B1] border border-blue-100 flex items-center justify-center font-bold text-xs uppercase shrink-0">
                               {item.user.fullName?.charAt(0) || 'U'}
                             </div>
                             <div className="min-w-0">
@@ -595,7 +595,7 @@ export default function ActivityLogsPage() {
                       <td className="py-3.5 px-4 text-center">
                         <button
                           onClick={() => setSelectedLog(item)}
-                          className="p-1.5 text-slate-500 hover:text-[#2e3e98] hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                          className="p-1.5 text-slate-500 hover:text-[#0066B1] hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
                           title="Xem chi tiết hoạt động"
                         >
                           <Eye className="w-4 h-4" />
@@ -697,7 +697,7 @@ export default function ActivityLogsPage() {
               {/* JSON Payload Details */}
               <div>
                 <h4 className="font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-[#2e3e98]" />
+                  <Layers className="w-4 h-4 text-[#0066B1]" />
                   Dữ Liệu Chi Tiết (Payload JSON)
                 </h4>
                 <div className="bg-[#0f1738] text-emerald-400 font-mono text-[11px] p-4 rounded-xl overflow-x-auto border border-[#1e2a5c] shadow-inner max-h-60">

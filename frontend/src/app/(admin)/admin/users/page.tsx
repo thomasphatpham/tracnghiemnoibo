@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import Pagination from '@/components/Pagination';
@@ -57,8 +57,8 @@ export default function AdminUsersPage() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionProcessing, setActionProcessing] = useState(false);
 
-  // Fetch Users
-  const fetchUsers = async () => {
+  // Fetch Users — wrapped in useCallback để memo stable reference
+  const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
@@ -78,10 +78,10 @@ export default function AdminUsersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, pageSize, search, roleFilter, statusFilter, deptFilter]);
 
-  // Fetch Account Requests
-  const fetchRequests = async () => {
+  // Fetch Account Requests — wrapped in useCallback
+  const fetchRequests = useCallback(async () => {
     setIsReqLoading(true);
     try {
       const params = new URLSearchParams({
@@ -100,9 +100,9 @@ export default function AdminUsersPage() {
     } finally {
       setIsReqLoading(false);
     }
-  };
+  }, [reqPage, reqPageSize, reqStatusFilter, reqSearch]);
 
-  // Initial load
+  // Initial load — departments + pending badge
   useEffect(() => {
     api.get('/departments').then((res) => setDepartments(res.data || []));
     // Fetch pending count initially for badge
@@ -117,7 +117,7 @@ export default function AdminUsersPage() {
     } else {
       fetchRequests();
     }
-  }, [page, pageSize, roleFilter, statusFilter, deptFilter, activeTab, reqPage, reqPageSize, reqStatusFilter]);
+  }, [activeTab, fetchUsers, fetchRequests]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();

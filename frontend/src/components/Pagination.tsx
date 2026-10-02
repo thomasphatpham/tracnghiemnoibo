@@ -70,7 +70,7 @@ export default function Pagination({
               onPageSizeChange(newSize);
               onPageChange(1);
             }}
-            className="px-2 py-1 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2e3e98]/30 focus:border-[#2e3e98] cursor-pointer transition"
+            className="px-2 py-1 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0066B1]/30 focus:border-[#0066B1] cursor-pointer transition"
           >
             {pageSizeOptions.map((opt) => (
               <option key={opt} value={opt}>
@@ -142,7 +142,7 @@ export default function Pagination({
                 onClick={() => onPageChange(Number(p))}
                 className={`min-w-[30px] h-[30px] px-2 rounded-lg text-xs font-semibold transition ${
                   isCurrent
-                    ? 'bg-[#2e3e98] text-white shadow-xs'
+                    ? 'bg-[#0066B1] text-white shadow-xs'
                     : 'border border-slate-200 hover:bg-slate-100 text-slate-700'
                 }`}
               >

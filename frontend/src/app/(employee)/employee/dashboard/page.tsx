@@ -104,7 +104,7 @@ export default function EmployeeDashboardPage() {
       </div>
 
       {/* Summary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 animate-stagger">
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs font-medium text-slate-500">Số Lượt Đã Thi</span>

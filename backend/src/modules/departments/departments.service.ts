@@ -123,11 +123,25 @@ export class DepartmentsService {
   }
 
   async update(id: string, dto: UpdateDepartmentDto) {
-    await this.findOne(id);
+    const existing = await this.findOne(id);
+
+    let normalizedCode: string | undefined;
+    if (dto.code && dto.code.trim()) {
+      normalizedCode = dto.code.trim().toUpperCase();
+      if (normalizedCode !== existing.code) {
+        const duplicate = await this.prisma.department.findUnique({
+          where: { code: normalizedCode },
+        });
+        if (duplicate && duplicate.id !== id) {
+          throw new ConflictException(`Mã phòng ban '${normalizedCode}' đã được sử dụng bởi phòng ban khác.`);
+        }
+      }
+    }
 
     const updated = await this.prisma.department.update({
       where: { id },
       data: {
+        ...(normalizedCode ? { code: normalizedCode } : {}),
         ...(dto.name ? { name: dto.name.trim() } : {}),
         ...(dto.status ? { status: dto.status } : {}),
       },
@@ -139,7 +153,7 @@ export class DepartmentsService {
           action: 'UPDATE_DEPARTMENT',
           entity: 'Department',
           entityId: id,
-          details: { name: updated.name, status: updated.status },
+          details: { code: updated.code, name: updated.name, status: updated.status },
         },
       })
       .catch(() => {});

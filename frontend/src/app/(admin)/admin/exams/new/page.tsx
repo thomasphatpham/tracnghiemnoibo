@@ -240,7 +240,7 @@ export default function CreateExamPage() {
             </h2>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-semibold text-slate-700 tracking-wider mb-1">
                 Tên Kỳ Thi <span className="text-rose-500">*</span>
               </label>
               <input
@@ -254,7 +254,7 @@ export default function CreateExamPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-semibold text-slate-700 tracking-wider mb-1">
                 Mô Tả / Hướng Dẫn Thí Sinh
               </label>
               <textarea
@@ -437,8 +437,8 @@ export default function CreateExamPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                  Thời Gian Mở Đề (Open At)
+                <label className="block text-xs font-semibold text-slate-700 tracking-wider mb-1">
+                  Thời Gian Mở Đề
                 </label>
                 <input
                   type="datetime-local"
@@ -450,8 +450,8 @@ export default function CreateExamPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                  Thời Gian Đóng Đề (Close At)
+                <label className="block text-xs font-semibold text-slate-700 tracking-wider mb-1">
+                  Thời Gian Đóng Đề
                 </label>
                 <input
                   type="datetime-local"
@@ -463,7 +463,7 @@ export default function CreateExamPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-slate-700   tracking-wider mb-1">
                   Thời Lượng (Phút)
                 </label>
                 <input
@@ -478,7 +478,7 @@ export default function CreateExamPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                <label className="block text-xs font-semibold text-slate-700 tracking-wider mb-1 flex items-center gap-1">
                   <RotateCcw className="w-3.5 h-3.5 text-blue-600" />
                   <span>Số Lượt Thi Tối Đa</span>
                 </label>
@@ -512,7 +512,7 @@ export default function CreateExamPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-slate-700 tracking-wider mb-1">
                   Tổng Số Câu Hỏi Trong Đề (N)
                 </label>
                 <input
@@ -526,7 +526,7 @@ export default function CreateExamPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-slate-700 tracking-wider mb-1">
                   Số Câu Đúng Tối Thiểu Để ĐẠT (Passing Threshold)
                 </label>
                 <input

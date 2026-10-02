@@ -115,7 +115,7 @@ export default function DepartmentExcelImportPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              <Building2 className="w-6 h-6 text-[#2e3e98]" />
+              <Building2 className="w-6 h-6 text-[#0066B1]" />
               <span>Import Danh Mục Phòng Ban Từ Excel</span>
             </h1>
             <p className="text-xs text-slate-500">Tải lên file định dạng .xlsx theo mẫu quy định</p>
@@ -133,7 +133,7 @@ export default function DepartmentExcelImportPage() {
 
       {/* Upload Zone */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-        <div className="border-2 border-dashed border-slate-300 hover:border-[#2e3e98] rounded-xl p-8 text-center bg-slate-50/50 transition">
+        <div className="border-2 border-dashed border-slate-300 hover:border-[#0066B1] rounded-xl p-8 text-center bg-slate-50/50 transition">
           <UploadCloud className="w-12 h-12 text-slate-400 mx-auto mb-2" />
           <p className="text-sm font-semibold text-slate-700">Chọn tệp Excel (.xlsx) từ máy tính</p>
           <p className="text-xs text-slate-400 mt-1 mb-4">
@@ -150,7 +150,7 @@ export default function DepartmentExcelImportPage() {
 
           <label
             htmlFor="dept-excel-file-input"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#2e3e98] hover:bg-[#233075] text-white text-xs font-semibold rounded-lg shadow-sm cursor-pointer transition"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#0066B1] hover:bg-[#233075] text-white text-xs font-semibold rounded-lg shadow-sm cursor-pointer transition"
           >
             <FileSpreadsheet className="w-4 h-4" />
             <span>{file ? file.name : 'Duyệt Chọn Tệp...'}</span>
@@ -160,7 +160,7 @@ export default function DepartmentExcelImportPage() {
         {file && !validationResult && (
           <div className="flex items-center justify-between p-3 bg-slate-100 rounded-lg">
             <div className="flex items-center gap-2 text-xs text-slate-800 font-medium truncate">
-              <FileCheck className="w-4 h-4 text-[#2e3e98] flex-shrink-0" />
+              <FileCheck className="w-4 h-4 text-[#0066B1] flex-shrink-0" />
               <span className="truncate">{file.name}</span>
               <span className="text-slate-400">({(file.size / 1024).toFixed(1)} KB)</span>
             </div>
@@ -168,7 +168,7 @@ export default function DepartmentExcelImportPage() {
             <button
               onClick={handleValidateFile}
               disabled={isValidating}
-              className="px-4 py-1.5 bg-[#2e3e98] hover:bg-[#233075] text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="px-4 py-1.5 bg-[#0066B1] hover:bg-[#233075] text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               {isValidating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>{isValidating ? 'Đang kiểm tra...' : 'Kiểm Tra Tệp Dữ Liệu'}</span>
@@ -201,7 +201,7 @@ export default function DepartmentExcelImportPage() {
                 <span className="text-xs text-slate-500 font-medium">Tổng số dòng đọc được</span>
                 <div className="text-xl font-bold text-slate-900">{validationResult.totalRows}</div>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#2e3e98] flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#0066B1] flex items-center justify-center font-bold">
                 {validationResult.totalRows}
               </div>
             </div>
@@ -270,7 +270,7 @@ export default function DepartmentExcelImportPage() {
                 <button
                   onClick={handleConfirmImport}
                   disabled={isImporting}
-                  className="px-5 py-2 bg-[#2e3e98] hover:bg-[#233075] active:bg-[#1a255c] text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 bg-[#0066B1] hover:bg-[#233075] active:bg-[#1a255c] text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isImporting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Xác Nhận Import {validationResult.validCount} Phòng Ban</span>
@@ -289,7 +289,7 @@ export default function DepartmentExcelImportPage() {
                   <tbody className="divide-y divide-slate-100">
                     {validationResult.validRows.map((r: any, idx: number) => (
                       <tr key={idx} className="hover:bg-slate-50">
-                        <td className="py-2.5 px-4 font-mono font-bold text-[#2e3e98]">{r.code}</td>
+                        <td className="py-2.5 px-4 font-mono font-bold text-[#0066B1]">{r.code}</td>
                         <td className="py-2.5 px-4 font-medium text-slate-800">{r.name}</td>
                         <td className="py-2.5 px-4 text-center">
                           <span

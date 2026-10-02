@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   CheckCircle2,
 } from 'lucide-react';
+import IntroVideo from '@/components/IntroVideo';
 
 function LoginForm() {
   const router = useRouter();
@@ -28,12 +29,37 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const [showEntryIntro, setShowEntryIntro] = useState(true);
+  const [showLoginIntro, setShowLoginIntro] = useState(false);
+  const [targetRoute, setTargetRoute] = useState<string | null>(null);
+
   useEffect(() => {
     setMounted(true);
+    // Nếu đã xem intro khi vào website rồi thì tắt intro để hiển thị form login ngay
+    const hasSeenEntry = sessionStorage.getItem('has_seen_entry_intro');
+    if (hasSeenEntry) {
+      setShowEntryIntro(false);
+    }
   }, []);
+
+  const handleEntryIntroFinished = () => {
+    sessionStorage.setItem('has_seen_entry_intro', 'true');
+    setShowEntryIntro(false);
+  };
 
   const sessionExpired = searchParams.get('error') === 'session_expired';
   const resetSuccess = searchParams.get('reset') === 'success';
+
+  const handleLoginIntroFinished = () => {
+    if (targetRoute) {
+      router.replace(targetRoute);
+      setTimeout(() => {
+        if (window.location.pathname === '/login') {
+          window.location.replace(targetRoute);
+        }
+      }, 1200);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,13 +81,16 @@ function LoginForm() {
       login(accessToken, user);
 
       // Route according to role and setup status
+      let nextRoute = '/employee/dashboard';
       if (user.role === 'ADMIN') {
-        router.push('/admin/dashboard');
+        nextRoute = '/admin/dashboard';
       } else if (user.status === 'REQUIRE_SETUP') {
-        router.push('/employee/profile/setup');
-      } else {
-        router.push('/employee/dashboard');
+        nextRoute = '/employee/profile/setup';
       }
+
+      router.prefetch(nextRoute);
+      setTargetRoute(nextRoute);
+      setShowLoginIntro(true);
     } catch (err: any) {
       const msg =
         err.response?.data?.message ||
@@ -84,10 +113,26 @@ function LoginForm() {
   };
 
   return (
-    <div
-      suppressHydrationWarning
-      className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200/90 p-8 space-y-6 animate-scale-in"
-    >
+    <>
+      {showEntryIntro && (
+        <IntroVideo
+          onFinished={handleEntryIntroFinished}
+          targetDurationSeconds={1.0}
+        />
+      )}
+      {showLoginIntro && (
+        <IntroVideo
+          onFinished={handleLoginIntroFinished}
+          targetDurationSeconds={1.0}
+          fadeOutOnFinish={false}
+        />
+      )}
+      <div
+        suppressHydrationWarning
+        className={`w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200/90 p-8 space-y-6 animate-scale-in transition-opacity duration-500 ${
+          showEntryIntro || showLoginIntro ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
       {/* Header with Saigonbank Logo */}
       <div className="text-center space-y-2">
         <div className="flex justify-center mb-3">
@@ -99,7 +144,7 @@ function LoginForm() {
             />
           </div>
         </div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-[#2e3e98] tracking-tight uppercase">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-[#0066B1] tracking-tight uppercase">
           HỆ THỐNG THI TRẮC NGHIỆM NỘI BỘ
         </h1>
         <p className="text-xs text-slate-500 font-medium">
@@ -191,7 +236,7 @@ function LoginForm() {
           type="submit"
           disabled={isLoading}
           suppressHydrationWarning
-          className="w-full py-2.5 px-4 bg-[#2e3e98] hover:bg-[#233075] active:bg-[#1a2459] text-white font-semibold text-sm rounded-lg shadow-md shadow-blue-900/20 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full py-2.5 px-4 bg-[#0066B1] hover:bg-[#233075] active:bg-[#1a2459] text-white font-semibold text-sm rounded-lg shadow-md shadow-blue-900/20 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {isLoading ? (
             <>
@@ -210,7 +255,7 @@ function LoginForm() {
           Chưa có tài khoản thi sát hạch?{' '}
           <Link
             href="/request-account"
-            className="text-[#2e3e98] hover:underline font-bold"
+            className="text-[#0066B1] hover:underline font-bold"
           >
             Yêu cầu cấp tài khoản
           </Link>
@@ -240,6 +285,7 @@ function LoginForm() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
@@ -249,7 +295,7 @@ export default function LoginPage() {
       <Suspense
         fallback={
           <div className="flex items-center justify-center p-8 bg-white rounded-2xl shadow-xl">
-            <Loader2 className="w-8 h-8 animate-spin text-[#2e3e98]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#0066B1]" />
           </div>
         }
       >

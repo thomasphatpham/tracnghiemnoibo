@@ -6,10 +6,15 @@
   --background: #f8fafc;
   --foreground: #0f172a;
   --saigonbank-navy: #1b2660;
-  --saigonbank-blue: #2e3e98;
+  --saigonbank-blue: #0066B1;
   --saigonbank-blue-light: #3b50c4;
   --saigonbank-accent: #2563eb;
   --saigonbank-subtle: #f0f6ff;
+
+  /* Easing curves chuẩn cho animation */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html {
@@ -24,16 +29,18 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Kích hoạt GPU layer cho toàn bộ body */
+  text-rendering: optimizeLegibility;
 }
 
 /* Custom banking slim scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -45,50 +52,227 @@ body {
   background: #94a3b8;
 }
 
-/* Smooth Hardware-Accelerated Animation Classes */
+/* =========================================
+   ANIMATION KEYFRAMES (GPU-accelerated)
+   Chỉ animate transform và opacity —
+   không animate width/height/margin/padding
+   để tránh layout thrashing
+   ========================================= */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px) translateZ(0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
   }
 }
 
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.97);
+    transform: scale(0.96) translateZ(0);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: scale(1) translateZ(0);
   }
 }
 
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateZ(0);
+  }
+}
+
+/* Skeleton shimmer — không dùng width animation */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+/* Pulse nhẹ cho badge/dot trạng thái */
+@keyframes statusPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.92) translateZ(0);
+  }
+}
+
+/* =========================================
+   ANIMATION UTILITY CLASSES
+   ========================================= */
+
 .animate-fade-in {
-  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.22s var(--ease-out-quint) both;
+  will-change: transform, opacity;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.28s var(--ease-out-quint) both;
+  will-change: transform, opacity;
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: scaleIn 0.20s var(--ease-out-quint) both;
+  will-change: transform, opacity;
 }
 
-/* Card lift interaction */
+.animate-slide-in-right {
+  animation: slideInRight 0.25s var(--ease-out-quint) both;
+  will-change: transform, opacity;
+}
+
+/* Stagger delays cho danh sách/card */
+.animate-stagger > * {
+  animation: fadeIn 0.22s var(--ease-out-quint) both;
+  will-change: transform, opacity;
+}
+
+.animate-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.animate-stagger > *:nth-child(2) { animation-delay: 40ms; }
+.animate-stagger > *:nth-child(3) { animation-delay: 80ms; }
+.animate-stagger > *:nth-child(4) { animation-delay: 120ms; }
+.animate-stagger > *:nth-child(5) { animation-delay: 160ms; }
+.animate-stagger > *:nth-child(6) { animation-delay: 200ms; }
+
+/* =========================================
+   SKELETON LOADING
+   ========================================= */
+
+.skeleton {
+  background: linear-gradient(
+    to right,
+    #f1f5f9 0%,
+    #e2e8f0 20%,
+    #f1f5f9 40%,
+    #f1f5f9 100%
+  );
+  background-size: 800px 104px;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 6px;
+}
+
+.skeleton-text {
+  height: 12px;
+  border-radius: 4px;
+}
+
+.skeleton-text-lg {
+  height: 20px;
+  border-radius: 6px;
+}
+
+.skeleton-circle {
+  border-radius: 9999px;
+}
+
+/* =========================================
+   CARD & INTERACTIVE ELEMENTS
+   GPU-composited: chỉ dùng transform + box-shadow
+   ========================================= */
+
 .card-interactive {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    transform 0.18s var(--ease-out-quint),
+    box-shadow 0.18s var(--ease-out-quint);
+  /* Kích hoạt GPU compositing layer */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .card-interactive:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -4px rgba(30, 58, 138, 0.08), 0 4px 6px -2px rgba(30, 58, 138, 0.03);
+  transform: translateY(-2px) translateZ(0);
+  box-shadow:
+    0 10px 25px -4px rgba(30, 58, 138, 0.08),
+    0 4px 6px -2px rgba(30, 58, 138, 0.04);
 }
 
-/* Glassmorphism styling */
+.card-interactive:active {
+  transform: translateY(0) translateZ(0);
+}
+
+/* =========================================
+   GLASSMORPHISM
+   ========================================= */
+
 .glass-panel {
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+
+/* =========================================
+   BUTTON MICRO-INTERACTIONS
+   ========================================= */
+
+.btn-press {
+  transition: transform 0.12s var(--ease-out-quint);
+  transform: translateZ(0);
+}
+
+.btn-press:active {
+  transform: scale(0.97) translateZ(0);
+}
+
+/* =========================================
+   TRANG & ROUTE TRANSITION
+   ========================================= */
+
+/* Overlay loading khi chuyển trang (dùng trong loading.tsx) */
+.page-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================================
+   ACCESSIBILITY: GIẢM HIỆU ỨNG THEO NHU CẦU
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .skeleton {
+    animation: none;
+    background: #e2e8f0;
+  }
+}
+
