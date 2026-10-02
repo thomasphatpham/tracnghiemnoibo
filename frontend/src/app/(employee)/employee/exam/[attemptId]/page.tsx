@@ -218,153 +218,209 @@ export default function ExamRoomPage() {
     triggerAutosave(position, key);
   };
 
+  const reportViolation = async (reasonContext: string) => {
+    if (isSubmittedRef.current) return;
+    try {
+      const res = await api.patch(`/attempts/${attemptId}/tab-switch`, {
+        reason: reasonContext,
+      });
+
+      setTabCount(res.data.tabSwitchCount || ((prev) => prev + 1));
+      Modal.destroyAll();
+
+      if (res.data?.autoSubmitted) {
+        isSubmittedRef.current = true;
+        router.replace(`/employee/results/${attemptId}`);
+      } else {
+        Modal.warning({
+          title: "Cảnh báo vi phạm nội quy thi!",
+          content: (
+            <div className="mt-2 text-slate-700">
+              {res.data.message}
+              <br />
+              <span className="font-semibold text-amber-600 mt-1 inline-block">
+                Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
+                {attemptRef.current?.maxTabSwitches}
+              </span>
+            </div>
+          ),
+          okText: "Tiếp Tục Thi",
+          width: 400,
+          onOk: () => {
+            if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen().catch((err) => {
+                console.error("Không thể bật Fullscreen lại", err);
+              });
+            }
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Violation report error", err);
+    }
+  };
+
   // 4. Giám sát vi phạm chuyển Tab (Tab Switch Detection)
   useEffect(() => {
     if (!attempt?.tabDetectionEnabled) return;
 
-    const handleVisibilityChange = async () => {
-      if (isSubmittedRef.current) return;
+    // const handleVisibilityChange = async () => {
+    //   if (isSubmittedRef.current) return;
 
+    //   if (document.hidden) {
+    //     try {
+    //       const res = await api.patch(`/attempts/${attemptId}/tab-switch`, {
+    //         reason: "Rời tab bài thi (visibilitychange)",
+    //       });
+
+    //       setTabCount(res.data.tabSwitchCount || ((prev) => prev + 1));
+    //       setTabWarning(res.data.message);
+
+    //       Modal.destroyAll();
+
+    //       if (res.data?.autoSubmitted) {
+    //         isSubmittedRef.current = true;
+
+    //         // Modal.error({
+    //         //   title: "Vi phạm bài thi",
+    //         //   content: (
+    //         //     <div className="mt-2 space-y-2">
+    //         //       <div className="font-semibold text-rose-600">
+    //         //         {res.data.message ||
+    //         //           "Bài thi bị tự động nộp do chuyển tab quá giới hạn!"}
+    //         //       </div>
+    //         //       <div className="text-slate-700 font-medium">
+    //         //         Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
+    //         //         {attempt.maxTabSwitches}
+    //         //       </div>
+    //         //     </div>
+    //         //   ),
+    //         //   okText: "Ok",
+    //         //   onOk: () => {
+    //         //     router.replace(`/employee/results/${attemptId}`);
+    //         //   },
+    //         //   width: 450,
+    //         // });
+    //         router.replace(`/employee/results/${attemptId}`);
+    //       } else {
+    //         Modal.warning({
+    //           title: "Cảnh báo vi phạm",
+    //           content: (
+    //             <div className="mt-2 text-slate-700">
+    //               {res.data.message}
+    //               <br />
+    //               <span className="font-semibold text-amber-600 mt-1 inline-block">
+    //                 Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
+    //                 {attempt.maxTabSwitches}
+    //               </span>
+    //             </div>
+    //           ),
+    //           okText: "Ok",
+    //           width: 400,
+    //         });
+    //       }
+    //     } catch (err) {
+    //       console.error("Tab switch report error", err);
+    //     }
+    //   }
+    //   // if (document.hidden) {
+    //   //   try {
+    //   //     const res = await api.patch(`/attempts/${attemptId}/tab-switch`, {
+    //   //       reason: "Rời tab bài thi (visibilitychange)",
+    //   //     });
+
+    //   //     setTabCount(res.data.tabSwitchCount || ((prev) => prev + 1));
+    //   //     setTabWarning(res.data.message);
+
+    //   //     Modal.destroyAll();
+
+    //   // if (res.data?.autoSubmitted) {
+    //   //   // alert(res.data.message || 'Bài thi bị tự động nộp do chuyển tab quá giới hạn!');
+    //   //   // router.replace(`/employee/results/${attemptId}`);
+    //   //   // return;
+    //   //   Modal.warning({
+    //   //     title: "Vi phạm bài thi",
+    //   //     content: (
+    //   //       <div>
+    //   //         <div>
+    //   //           {res.data.message ||
+    //   //             "Bài thi bị tự động nộp do chuyển tab quá giới hạn!"}
+    //   //         </div>
+    //   //         <div>
+    //   //           Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
+    //   //           {attempt.maxTabSwitches}
+    //   //         </div>
+    //   //       </div>
+    //   //     ),
+    //   //     okText: "Ok",
+    //   //     onOk: () => {
+    //   //       router.replace(`/employee/results/${attemptId}`);
+    //   //     },
+    //   //     width: "40%",
+    //   //   });
+    //   //   return;
+    //   // }
+    //   //     if (res.data?.autoSubmitted) {
+    //   //       Modal.error({
+    //   //         title: "Vi phạm bài thi",
+    //   //         content: (
+    //   //           <div className="mt-2 space-y-2">
+    //   //             <div className="font-semibold text-rose-600">
+    //   //               {res.data.message ||
+    //   //                 "Bài thi bị tự động nộp do chuyển tab quá giới hạn!"}
+    //   //             </div>
+    //   //             <div className="text-slate-700 font-medium">
+    //   //               (Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
+    //   //               {attempt.maxTabSwitches})
+    //   //             </div>
+    //   //           </div>
+    //   //         ),
+    //   //         okText: "Ok",
+    //   //         onOk: () => {
+    //   //           router.replace(`/employee/results/${attemptId}`);
+    //   //         },
+    //   //         width: 450,
+    //   //       });
+    //   //     } else {
+    //   //       Modal.warning({
+    //   //         title: "Cảnh báo vi phạm",
+    //   //         content: (
+    //   //           <div className="mt-2 text-slate-700">
+    //   //             {res.data.message}
+    //   //             <br />
+    //   //             <span className="font-semibold text-amber-600 mt-1 inline-block">
+    //   //               (Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
+    //   //               {attempt.maxTabSwitches})
+    //   //             </span>
+    //   //           </div>
+    //   //         ),
+    //   //         okText: "Tôi đã hiểu",
+    //   //         width: 400,
+    //   //       });
+    //   //     }
+    //   //   } catch (err) {
+    //   //     console.error("Tab switch report error", err);
+    //   //   }
+    //   // }
+    // };
+    const handleVisibilityChange = () => {
       if (document.hidden) {
-        try {
-          const res = await api.patch(`/attempts/${attemptId}/tab-switch`, {
-            reason: "Rời tab bài thi (visibilitychange)",
-          });
-
-          setTabCount(res.data.tabSwitchCount || ((prev) => prev + 1));
-          setTabWarning(res.data.message);
-
-          Modal.destroyAll();
-
-          if (res.data?.autoSubmitted) {
-            isSubmittedRef.current = true;
-
-            // Modal.error({
-            //   title: "Vi phạm bài thi",
-            //   content: (
-            //     <div className="mt-2 space-y-2">
-            //       <div className="font-semibold text-rose-600">
-            //         {res.data.message ||
-            //           "Bài thi bị tự động nộp do chuyển tab quá giới hạn!"}
-            //       </div>
-            //       <div className="text-slate-700 font-medium">
-            //         Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
-            //         {attempt.maxTabSwitches}
-            //       </div>
-            //     </div>
-            //   ),
-            //   okText: "Ok",
-            //   onOk: () => {
-            //     router.replace(`/employee/results/${attemptId}`);
-            //   },
-            //   width: 450,
-            // });
-            router.replace(`/employee/results/${attemptId}`);
-          } else {
-            Modal.warning({
-              title: "Cảnh báo vi phạm",
-              content: (
-                <div className="mt-2 text-slate-700">
-                  {res.data.message}
-                  <br />
-                  <span className="font-semibold text-amber-600 mt-1 inline-block">
-                    Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
-                    {attempt.maxTabSwitches}
-                  </span>
-                </div>
-              ),
-              okText: "Ok",
-              width: 400,
-            });
-          }
-        } catch (err) {
-          console.error("Tab switch report error", err);
-        }
+        reportViolation("Rời tab bài thi (visibilitychange)");
       }
-      // if (document.hidden) {
-      //   try {
-      //     const res = await api.patch(`/attempts/${attemptId}/tab-switch`, {
-      //       reason: "Rời tab bài thi (visibilitychange)",
-      //     });
+    };
 
-      //     setTabCount(res.data.tabSwitchCount || ((prev) => prev + 1));
-      //     setTabWarning(res.data.message);
-
-      //     Modal.destroyAll();
-
-      // if (res.data?.autoSubmitted) {
-      //   // alert(res.data.message || 'Bài thi bị tự động nộp do chuyển tab quá giới hạn!');
-      //   // router.replace(`/employee/results/${attemptId}`);
-      //   // return;
-      //   Modal.warning({
-      //     title: "Vi phạm bài thi",
-      //     content: (
-      //       <div>
-      //         <div>
-      //           {res.data.message ||
-      //             "Bài thi bị tự động nộp do chuyển tab quá giới hạn!"}
-      //         </div>
-      //         <div>
-      //           Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
-      //           {attempt.maxTabSwitches}
-      //         </div>
-      //       </div>
-      //     ),
-      //     okText: "Ok",
-      //     onOk: () => {
-      //       router.replace(`/employee/results/${attemptId}`);
-      //     },
-      //     width: "40%",
-      //   });
-      //   return;
-      // }
-      //     if (res.data?.autoSubmitted) {
-      //       Modal.error({
-      //         title: "Vi phạm bài thi",
-      //         content: (
-      //           <div className="mt-2 space-y-2">
-      //             <div className="font-semibold text-rose-600">
-      //               {res.data.message ||
-      //                 "Bài thi bị tự động nộp do chuyển tab quá giới hạn!"}
-      //             </div>
-      //             <div className="text-slate-700 font-medium">
-      //               (Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
-      //               {attempt.maxTabSwitches})
-      //             </div>
-      //           </div>
-      //         ),
-      //         okText: "Ok",
-      //         onOk: () => {
-      //           router.replace(`/employee/results/${attemptId}`);
-      //         },
-      //         width: 450,
-      //       });
-      //     } else {
-      //       Modal.warning({
-      //         title: "Cảnh báo vi phạm",
-      //         content: (
-      //           <div className="mt-2 text-slate-700">
-      //             {res.data.message}
-      //             <br />
-      //             <span className="font-semibold text-amber-600 mt-1 inline-block">
-      //               (Cảnh báo: Vi phạm lần {res.data.tabSwitchCount}/
-      //               {attempt.maxTabSwitches})
-      //             </span>
-      //           </div>
-      //         ),
-      //         okText: "Tôi đã hiểu",
-      //         width: 400,
-      //       });
-      //     }
-      //   } catch (err) {
-      //     console.error("Tab switch report error", err);
-      //   }
-      // }
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        reportViolation("Thoát khỏi chế độ toàn màn hình (fullscreenchange)");
+      }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () =>
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
   }, [attempt, attemptId, router]);
 
   // 5. Nộp bài chủ động
