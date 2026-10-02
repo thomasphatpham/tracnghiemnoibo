@@ -59,14 +59,14 @@ export class EmailService {
   }
 
   async sendAccountApprovalEmail(to: string, fullName: string, username: string, defaultPassword: string): Promise<boolean> {
-    const from = this.configService.get<string>('SMTP_FROM', 'no-reply@tracnghiem.local');
+    const from = this.configService.get<string>('SMTP_FROM', 'kythuatsdtc@gmail.com');
     const subject = `Tài khoản hệ thống của nhân viên đã được phê duyệt`;
     const text = `Kính gửi ${fullName},\n\nYêu cầu cấp tài khoản của nhân viên đã được phê duyệt.\n\nThông tin đăng nhập:\n- Tên đăng nhập: ${username}\n- Mật khẩu: ${defaultPassword}\n\nVui lòng đổi mật khẩu sau khi đăng nhập lần đầu tiên để bảo mật.`;
     const html = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         
         <div style="background-color: #FFFFFF; padding: 25px 20px; text-align: center;">
-          <img src="cid:bank_logo" alt="Bank Logo" style="width: 80px; height: auto; margin-bottom: 10px;">
+          <img src="https://zhtjcvtwfybeyuezxzvk.supabase.co/storage/v1/object/sign/file/Logo.png?token=eyJraWQiOiI0M2YyMGQ5Yi00YmRlLTRiYTUtOGY2YS1jOWIxNzFlYWRlZmEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJmaWxlL0xvZ28ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDkwOTAwOCwiZXhwIjozOTk4NDI5MDA4fQ.o1321ue_m944FcxG4VUXgBE7lF2FI1HOipPBvMqo2mY" alt="Bank Logo" style="width: 80px; height: auto; margin-bottom: 10px;">
           <h2 style="color: #003366; margin: 0; font-size: 20px; font-weight: 600; text-transform: uppercase;">Ngân Hàng Trắc Nghiệm</h2>
         </div>
         
@@ -101,19 +101,19 @@ export class EmailService {
 
 try {
       // SỬA: Đính kèm hình ảnh và gán Content ID
-      await this.transporter.sendMail({ 
-        from, 
-        to, 
-        subject, 
-        text, 
+      await this.transporter.sendMail({
+        from,
+        to,
+        subject,
+        text,
         html,
-        attachments: [
-          {
-            filename: 'logo.png',
-            path: join(process.cwd(), 'public', 'logo.png'),
-            cid: 'bank_logo'
-          }
-        ]
+        // attachments: [
+        //   {
+        //     filename: 'logo.png',
+        //     path: join(process.cwd(), 'public', 'logo.png'),
+        //     cid: 'bank_logo'
+        //   }
+        // ]
       });
       this.logger.log(`✅ Email approval sent successfully to ${to}`);
       return true;

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { api } from '@/lib/api';
-import { useAuth } from '@/lib/auth-context';
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import {
   Lock,
   User,
@@ -12,7 +12,6 @@ import {
   EyeOff,
   AlertCircle,
   Loader2,
-  ShieldCheck,
   CheckCircle2,
 } from 'lucide-react';
 import IntroVideo from '@/components/IntroVideo';
@@ -22,19 +21,17 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
 
-  const [mounted, setMounted] = useState(false);
-  const [usernameOrEmail, setUsernameOrEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [showEntryIntro, setShowEntryIntro] = useState(true);
   const [showLoginIntro, setShowLoginIntro] = useState(false);
   const [targetRoute, setTargetRoute] = useState<string | null>(null);
 
   useEffect(() => {
-    setMounted(true);
     // Nếu đã xem intro khi vào website rồi thì tắt intro để hiển thị form login ngay
     const hasSeenEntry = sessionStorage.getItem('has_seen_entry_intro');
     if (hasSeenEntry) {
@@ -64,15 +61,15 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!usernameOrEmail.trim() || !password) {
-      setErrorMessage('Vui lòng điền đầy đủ thông tin đăng nhập.');
+      setErrorMessage("Vui lòng điền đầy đủ thông tin đăng nhập.");
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage('');
+    setErrorMessage("");
 
     try {
-      const res = await api.post('/auth/login', {
+      const res = await api.post("/auth/login", {
         usernameOrEmail: usernameOrEmail.trim(),
         password,
       });
@@ -94,22 +91,22 @@ function LoginForm() {
     } catch (err: any) {
       const msg =
         err.response?.data?.message ||
-        'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại dịch vụ Backend.';
-      setErrorMessage(Array.isArray(msg) ? msg.join(', ') : msg);
+        "Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại dịch vụ Backend.";
+      setErrorMessage(Array.isArray(msg) ? msg.join(", ") : msg);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fillQuickAccount = (userType: 'admin' | 'employee') => {
-    if (userType === 'admin') {
-      setUsernameOrEmail('admin');
-      setPassword('Admin@123456');
+  const fillQuickAccount = (userType: "admin" | "employee") => {
+    if (userType === "admin") {
+      setUsernameOrEmail("admin");
+      setPassword("Admin@123456");
     } else {
-      setUsernameOrEmail('nhanvien1');
-      setPassword('User@123456');
+      setUsernameOrEmail("nhanvien1");
+      setPassword("User@123456");
     }
-    setErrorMessage('');
+    setErrorMessage("");
   };
 
   return (
@@ -156,14 +153,18 @@ function LoginForm() {
       {sessionExpired && (
         <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          <span>Phiên đăng nhập đã hết hạn hoặc bị thu hồi bởi lượt đăng nhập mới.</span>
+          <span>
+            Phiên đăng nhập đã hết hạn hoặc bị thu hồi bởi lượt đăng nhập mới.
+          </span>
         </div>
       )}
 
       {resetSuccess && (
         <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-xs flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-          <span>Đặt lại mật khẩu thành công! Vui lòng đăng nhập với mật khẩu mới.</span>
+          <span>
+            Đặt lại mật khẩu thành công! Vui lòng đăng nhập với mật khẩu mới.
+          </span>
         </div>
       )}
 
@@ -175,7 +176,11 @@ function LoginForm() {
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4"
+        suppressHydrationWarning
+      >
         <div>
           <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
             Tài Khoản / Email
@@ -213,7 +218,7 @@ function LoginForm() {
               <Lock className="w-4 h-4" />
             </div>
             <input
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Nhập mật khẩu..."
@@ -227,7 +232,11 @@ function LoginForm() {
               suppressHydrationWarning
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
             >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>
@@ -252,7 +261,7 @@ function LoginForm() {
       {/* Link to Request Account */}
       <div className="pt-2 text-center border-t border-slate-100">
         <p className="text-xs text-slate-500">
-          Chưa có tài khoản thi sát hạch?{' '}
+          Chưa có tài khoản thi ?{" "}
           <Link
             href="/request-account"
             className="text-[#0066B1] hover:underline font-bold"
@@ -264,11 +273,13 @@ function LoginForm() {
 
       {/* Demo Quick Fill */}
       <div className="pt-1" suppressHydrationWarning>
-        <p className="text-[11px] text-slate-400 text-center mb-2">Điền nhanh tài khoản mẫu thử nghiệm:</p>
+        <p className="text-[11px] text-slate-400 text-center mb-2">
+          Điền nhanh tài khoản mẫu thử nghiệm:
+        </p>
         <div className="grid grid-cols-2 gap-2" suppressHydrationWarning>
           <button
             type="button"
-            onClick={() => fillQuickAccount('admin')}
+            onClick={() => fillQuickAccount("admin")}
             suppressHydrationWarning
             className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium transition cursor-pointer"
           >
@@ -276,7 +287,7 @@ function LoginForm() {
           </button>
           <button
             type="button"
-            onClick={() => fillQuickAccount('employee')}
+            onClick={() => fillQuickAccount("employee")}
             suppressHydrationWarning
             className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium transition cursor-pointer"
           >
