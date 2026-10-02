@@ -372,11 +372,10 @@ export default function AdminExamsPage() {
                             {exam.description}
                           </div>
                         )}
-                        
                       </td>
 
                       {/* Candidate Scope */}
-                      <td className="px-4 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 text-center whitespace-nowrap">
                         {exam.candidateScope === "ALL" && (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/80">
                             <Users className="w-3 h-3 text-blue-600" />
