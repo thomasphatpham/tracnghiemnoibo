@@ -107,6 +107,18 @@ export default function EditExamPage({
   //     setIsReverting(false);
   //   }
   // };
+
+  const formatToInputDate = (dateStr: string) => {
+    if (!dateStr) return "";
+
+    const safeDateStr =
+      dateStr.includes("Z") || dateStr.includes("+") ? dateStr : `${dateStr}Z`;
+    const date = new Date(safeDateStr);
+
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+  };
+
   const handleRevertToDraft = () => {
     Modal.confirm({
       title: "Xác nhận chuyển về Bản Nháp",
@@ -207,11 +219,17 @@ export default function EditExamPage({
         );
 
         // Load time fields
+        // if (exam.openAt) {
+        //   setOpenAt(new Date(exam.openAt).toISOString().slice(0, 16));
+        // }
+        // if (exam.closeAt) {
+        //   setCloseAt(new Date(exam.closeAt).toISOString().slice(0, 16));
+        // }
         if (exam.openAt) {
-          setOpenAt(new Date(exam.openAt).toISOString().slice(0, 16));
+          setOpenAt(formatToInputDate(exam.openAt));
         }
         if (exam.closeAt) {
-          setCloseAt(new Date(exam.closeAt).toISOString().slice(0, 16));
+          setCloseAt(formatToInputDate(exam.closeAt));
         }
 
         // Build dept percentages from departmentRules
