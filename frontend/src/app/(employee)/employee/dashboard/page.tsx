@@ -123,8 +123,8 @@ export default function EmployeeDashboardPage() {
             Xin chào, {user?.fullName}!
           </h1>
           <p className="text-sm text-blue-100">
-            Theo dõi tiến độ khảo thí, kết quả các đợt thi sát hạch nghiệp vụ và
-            xem lại chi tiết bài làm của bạn.
+            Theo dõi tiến độ khảo thí, kết quả các đợt thi nghiệp vụ và xem lại
+            chi tiết bài làm của bạn.
           </p>
         </div>
       </div>
