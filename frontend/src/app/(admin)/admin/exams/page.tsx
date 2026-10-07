@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import Pagination from "@/components/Pagination";
-import { Modal, message } from "antd";
+import { Modal, message, Dropdown } from "antd";
 import {
   Award,
   Plus,
@@ -28,6 +28,7 @@ import {
   Filter,
   Eye,
   Check,
+  ChevronDown,
 } from "lucide-react";
 
 const { confirm } = Modal;
@@ -465,7 +466,7 @@ export default function AdminExamsPage() {
 
                       <td className="px-4 py-4">
                         <div className="flex flex-wrap gap-1 max-w-xs">
-                          {exam.departmentRules?.map((rule: any) => (
+                          {/* {exam.departmentRules?.map((rule: any) => (
                             <span
                               key={rule.id}
                               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200"
@@ -477,7 +478,46 @@ export default function AdminExamsPage() {
                                 {rule.allocatedCount} câu
                               </span>
                             </span>
-                          ))}
+                          ))} */}
+                          {exam.departmentRules &&
+                          exam.departmentRules.length > 0 ? (
+                            <Dropdown
+                              menu={{
+                                items: exam.departmentRules.map(
+                                  (rule: any, idx: number) => ({
+                                    key: rule.id || idx,
+                                    className:
+                                      "cursor-default pointer-events-none",
+                                    label: (
+                                      <div className="flex justify-between items-center gap-4 min-w-[140px] px-1 py-0.5">
+                                        <span className="font-semibold text-slate-700 text-xs">
+                                          {rule.department?.code ||
+                                            rule.department?.name}
+                                        </span>
+                                        <span className="text-blue-700 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded-md">
+                                          {rule.allocatedCount} câu
+                                        </span>
+                                      </div>
+                                    ),
+                                  }),
+                                ),
+                              }}
+                              trigger={["click"]}
+                              placement="bottomLeft"
+                            >
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition cursor-pointer">
+                                <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                                <span>
+                                  {exam.departmentRules.length} phòng ban
+                                </span>
+                                <ChevronDown className="w-3 h-3 text-slate-400 ml-0.5" />
+                              </div>
+                            </Dropdown>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 italic">
+                              Chưa phân bổ
+                            </span>
+                          )}
                         </div>
                       </td>
 
