@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, use } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { api } from '@/lib/api';
+import React, { useEffect, useState, use } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { api } from "@/lib/api";
 import {
   UserCheck,
   ArrowLeft,
@@ -16,39 +16,45 @@ import {
   AlertCircle,
   CheckCircle2,
   Trash2,
-} from 'lucide-react';
+} from "lucide-react";
 
-export default function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditUserPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const resolvedParams = use(params);
   const userId = resolvedParams.id;
   const router = useRouter();
 
   const [departments, setDepartments] = useState<any[]>([]);
-  const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [position, setPosition] = useState('');
-  const [departmentId, setDepartmentId] = useState('');
-  const [role, setRole] = useState<'EMPLOYEE' | 'ADMIN'>('EMPLOYEE');
-  const [status, setStatus] = useState<'ACTIVE' | 'LOCKED' | 'REQUIRE_SETUP'>('ACTIVE');
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [position, setPosition] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [role, setRole] = useState<"EMPLOYEE" | "ADMIN">("EMPLOYEE");
+  const [status, setStatus] = useState<"ACTIVE" | "LOCKED" | "REQUIRE_SETUP">(
+    "ACTIVE",
+  );
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteUser = async () => {
     setIsDeleting(true);
-    setErrorMessage('');
+    setErrorMessage("");
     try {
       await api.delete(`/users/${userId}`);
-      router.push('/admin/users');
+      router.push("/admin/users");
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Không thể xóa tài khoản này.';
-      setErrorMessage(Array.isArray(msg) ? msg.join(', ') : msg);
+      const msg = err.response?.data?.message || "Không thể xóa tài khoản này.";
+      setErrorMessage(Array.isArray(msg) ? msg.join(", ") : msg);
       setShowDeleteConfirm(false);
     } finally {
       setIsDeleting(false);
@@ -59,21 +65,21 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
     async function loadData() {
       try {
         const [depRes, userRes] = await Promise.all([
-          api.get('/departments'),
+          api.get("/departments"),
           api.get(`/users/${userId}`),
         ]);
         setDepartments(depRes.data || []);
 
         const u = userRes.data;
-        setFullName(u.fullName || '');
-        setUsername(u.username || '');
-        setEmail(u.email || '');
-        setPosition(u.position || '');
-        setDepartmentId(u.departmentId || '');
-        setRole(u.role || 'EMPLOYEE');
-        setStatus(u.status || 'ACTIVE');
+        setFullName(u.fullName || "");
+        setUsername(u.username || "");
+        setEmail(u.email || "");
+        setPosition(u.position || "");
+        setDepartmentId(u.departmentId || "");
+        setRole(u.role || "EMPLOYEE");
+        setStatus(u.status || "ACTIVE");
       } catch (err) {
-        setErrorMessage('Không thể tải thông tin người dùng.');
+        setErrorMessage("Không thể tải thông tin người dùng.");
       } finally {
         setIsLoading(false);
       }
@@ -84,8 +90,8 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setErrorMessage('');
-    setSuccessMessage('');
+    setErrorMessage("");
+    setSuccessMessage("");
 
     try {
       await api.patch(`/users/${userId}`, {
@@ -98,13 +104,13 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
         status,
       });
 
-      setSuccessMessage('Cập nhật người dùng thành công!');
+      setSuccessMessage("Cập nhật người dùng thành công!");
       setTimeout(() => {
-        router.push('/admin/users');
+        router.push("/admin/users");
       }, 1000);
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Có lỗi xảy ra.';
-      setErrorMessage(Array.isArray(msg) ? msg.join(', ') : msg);
+      const msg = err.response?.data?.message || "Có lỗi xảy ra.";
+      setErrorMessage(Array.isArray(msg) ? msg.join(", ") : msg);
     } finally {
       setIsSaving(false);
     }
@@ -114,7 +120,9 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
     return (
       <div className="py-20 flex flex-col items-center justify-center gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <p className="text-xs text-slate-500">Đang tải thông tin người dùng...</p>
+        <p className="text-xs text-slate-500">
+          Đang tải thông tin người dùng...
+        </p>
       </div>
     );
   }
@@ -133,7 +141,9 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
             <UserCheck className="w-6 h-6 text-blue-600" />
             <span>Chỉnh Sửa Người Dùng: @{username}</span>
           </h1>
-          <p className="text-xs text-slate-500">Cập nhật thông tin phân quyền và phòng ban công tác</p>
+          <p className="text-xs text-slate-500">
+            Cập nhật thông tin phân quyền và phòng ban công tác
+          </p>
         </div>
       </div>
 
@@ -218,7 +228,6 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                 onChange={(e) => setDepartmentId(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="">-- Chưa phân bổ --</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     [{d.code}] {d.name}
@@ -231,12 +240,17 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
                 Vị Trí / Chức Vụ
               </label>
-              <input
-                type="text"
+              <select
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              >
+                <option value="Chuyên Viên">Chuyên Viên</option>
+                <option value="Phó Phòng">Phó Phòng</option>
+                <option value="Trưởng Phòng">Trưởng Phòng</option>
+                <option value="Phó Giám Đốc">Phó Giám Đốc</option>
+                <option value="Giám Đốc">Giám Đốc</option>
+              </select>
             </div>
           </div>
 
@@ -264,9 +278,9 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                 onChange={(e) => setStatus(e.target.value as any)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="ACTIVE">Hoạt động (ACTIVE)</option>
-                <option value="LOCKED">Đã khóa (LOCKED)</option>
-                <option value="REQUIRE_SETUP">Yêu cầu hoàn tất hồ sơ (REQUIRE_SETUP)</option>
+                <option value="ACTIVE">Hoạt động</option>
+                <option value="LOCKED">Đã khóa</option>
+                <option value="REQUIRE_SETUP">Yêu cầu hoàn tất hồ sơ</option>
               </select>
             </div>
           </div>
@@ -281,7 +295,8 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                     Xác nhận xóa tài khoản [{fullName} - {username}]?
                   </p>
                   <p className="text-xs text-rose-700 leading-relaxed">
-                    Tài khoản sẽ bị xóa vĩnh viễn khỏi hệ thống nếu chưa có lịch sử làm bài thi. Thao tác này không thể hoàn tác.
+                    Tài khoản sẽ bị xóa vĩnh viễn khỏi hệ thống nếu chưa có lịch
+                    sử làm bài thi. Thao tác này không thể hoàn tác.
                   </p>
                 </div>
               </div>

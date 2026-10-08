@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { api } from '@/lib/api';
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { api } from "@/lib/api";
 import {
   UserPlus,
   ArrowLeft,
@@ -15,7 +15,7 @@ import {
   HelpCircle,
   ShieldCheck,
   Lock,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface Department {
   id: string;
@@ -28,21 +28,21 @@ export default function RequestAccountPage() {
   const [isDeptLoading, setIsDeptLoading] = useState(true);
 
   // Form Fields
-  const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [departmentId, setDepartmentId] = useState('');
-  const [position, setPosition] = useState('');
-  const [reason, setReason] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [position, setPosition] = useState("Chuyên Viên");
+  const [reason, setReason] = useState("");
 
   // Status
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
     api
-      .get('/account-requests/departments')
+      .get("/account-requests/departments")
       .then((res) => {
         setDepartments(res.data || []);
         if (res.data && res.data.length > 0) {
@@ -50,7 +50,7 @@ export default function RequestAccountPage() {
         }
       })
       .catch((err) => {
-        console.error('Failed to load departments', err);
+        console.error("Failed to load departments", err);
       })
       .finally(() => {
         setIsDeptLoading(false);
@@ -59,17 +59,22 @@ export default function RequestAccountPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !username.trim() || !email.trim() || !departmentId) {
-      setErrorMsg('Vui lòng điền đầy đủ các thông tin bắt buộc (*).');
+    if (
+      !fullName.trim() ||
+      !username.trim() ||
+      !email.trim() ||
+      !departmentId
+    ) {
+      setErrorMsg("Vui lòng điền đầy đủ các thông tin bắt buộc (*).");
       return;
     }
 
     setIsSubmitting(true);
-    setErrorMsg('');
-    setSuccessMsg('');
+    setErrorMsg("");
+    setSuccessMsg("");
 
     try {
-      const res = await api.post('/account-requests', {
+      const res = await api.post("/account-requests", {
         fullName: fullName.trim(),
         username: username.trim(),
         email: email.trim(),
@@ -80,13 +85,13 @@ export default function RequestAccountPage() {
 
       setSuccessMsg(
         res.data?.message ||
-          'Yêu cầu cấp tài khoản của bạn đã được gửi thành công đến Quản trị viên. Vui lòng chờ phê duyệt!',
+          "Yêu cầu cấp tài khoản của bạn đã được gửi thành công đến Quản trị viên. Vui lòng chờ phê duyệt!",
       );
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
-        'Gửi yêu cầu không thành công. Vui lòng kiểm tra lại thông tin hoặc thử lại sau.';
-      setErrorMsg(Array.isArray(msg) ? msg.join(', ') : msg);
+        "Gửi yêu cầu không thành công. Vui lòng kiểm tra lại thông tin hoặc thử lại sau.";
+      setErrorMsg(Array.isArray(msg) ? msg.join(", ") : msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -95,7 +100,6 @@ export default function RequestAccountPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 text-slate-800">
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200/90 p-8 sm:p-10 space-y-6 animate-scale-in">
-        
         {/* Brand Header */}
         <div className="text-center space-y-2.5 pb-4 border-b border-slate-100">
           <div className="flex justify-center mb-2">
@@ -182,7 +186,8 @@ export default function RequestAccountPage() {
               {/* Mã NV / Username */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Mã nhân viên / Username <span className="text-red-500">*</span>
+                  Mã nhân viên / Username{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -244,14 +249,18 @@ export default function RequestAccountPage() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Chức vụ / Vị trí (Tùy chọn)
                 </label>
-                <input
-                  type="text"
+                <select
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
-                  placeholder="Ví dụ: Chuyên viên CNTT"
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm text-slate-900 placeholder-slate-400"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm text-slate-900 bg-white cursor-pointer disabled:opacity-50"
                   disabled={isSubmitting}
-                />
+                >
+                  <option value="Chuyên Viên">Chuyên Viên</option>
+                  <option value="Phó Phòng">Phó Phòng</option>
+                  <option value="Trưởng Phòng">Trưởng Phòng</option>
+                  <option value="Phó Giám Đốc">Phó Giám Đốc</option>
+                  <option value="Giám Đốc">Giám Đốc</option>
+                </select>
               </div>
             </div>
 
@@ -311,7 +320,6 @@ export default function RequestAccountPage() {
             <span>Quay lại trang chủ</span>
           </Link>
         </div>
-
       </div>
     </div>
   );
