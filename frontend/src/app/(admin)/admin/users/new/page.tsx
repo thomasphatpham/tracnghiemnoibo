@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { api } from '@/lib/api';
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { api } from "@/lib/api";
 import {
   UserPlus,
   ArrowLeft,
@@ -15,25 +15,25 @@ import {
   Shield,
   Loader2,
   AlertCircle,
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function CreateUserPage() {
   const router = useRouter();
 
   const [departments, setDepartments] = useState<any[]>([]);
-  const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('User@123456');
-  const [position, setPosition] = useState('');
-  const [departmentId, setDepartmentId] = useState('');
-  const [role, setRole] = useState<'EMPLOYEE' | 'ADMIN'>('EMPLOYEE');
-  const [status, setStatus] = useState<'ACTIVE' | 'REQUIRE_SETUP'>('ACTIVE');
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("User@123456");
+  const [position, setPosition] = useState("Chuyên Viên");
+  const [departmentId, setDepartmentId] = useState("");
+  const [role, setRole] = useState<"EMPLOYEE" | "ADMIN">("EMPLOYEE");
+  const [status, setStatus] = useState<"ACTIVE" | "REQUIRE_SETUP">("ACTIVE");
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    api.get('/departments?onlyActive=true').then((res) => {
+    api.get("/departments?onlyActive=true").then((res) => {
       setDepartments(res.data || []);
       if (res.data?.length > 0) setDepartmentId(res.data[0].id);
     });
@@ -42,15 +42,15 @@ export default function CreateUserPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !username.trim() || !email.trim()) {
-      setErrorMessage('Vui lòng điền đầy đủ các thông tin bắt buộc.');
+      setErrorMessage("Vui lòng điền đầy đủ các thông tin bắt buộc.");
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage('');
+    setErrorMessage("");
 
     try {
-      await api.post('/users', {
+      await api.post("/users", {
         fullName: fullName.trim(),
         username: username.trim(),
         email: email.trim().toLowerCase(),
@@ -61,10 +61,10 @@ export default function CreateUserPage() {
         status,
       });
 
-      router.push('/admin/users');
+      router.push("/admin/users");
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Không thể tạo người dùng.';
-      setErrorMessage(Array.isArray(msg) ? msg.join(', ') : msg);
+      const msg = err.response?.data?.message || "Không thể tạo người dùng.";
+      setErrorMessage(Array.isArray(msg) ? msg.join(", ") : msg);
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +84,9 @@ export default function CreateUserPage() {
             <UserPlus className="w-6 h-6 text-blue-600" />
             <span>Thêm Người Dùng Mới</span>
           </h1>
-          <p className="text-xs text-slate-500">Tạo tài khoản cán bộ nhân viên hoặc quản trị viên</p>
+          <p className="text-xs text-slate-500">
+            Tạo tài khoản cán bộ nhân viên hoặc quản trị viên
+          </p>
         </div>
       </div>
 
@@ -175,7 +177,6 @@ export default function CreateUserPage() {
                 onChange={(e) => setDepartmentId(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="">-- Chưa phân phòng ban --</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
                     [{d.code}] {d.name}
@@ -188,13 +189,17 @@ export default function CreateUserPage() {
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
                 Chức Danh / Vị Trí
               </label>
-              <input
-                type="text"
+              <select
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
-                placeholder="VD: Kỹ sư, Chuyên viên..."
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
-              />
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              >
+                <option value="Chuyên Viên">Chuyên Viên</option>
+                <option value="Phó Phòng">Phó Phòng</option>
+                <option value="Trưởng Phòng">Trưởng Phòng</option>
+                <option value="Phó Giám Đốc">Phó Giám Đốc</option>
+                <option value="Giám Đốc">Giám Đốc</option>
+              </select>
             </div>
           </div>
 
@@ -222,8 +227,10 @@ export default function CreateUserPage() {
                 onChange={(e) => setStatus(e.target.value as any)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="ACTIVE">Kích hoạt ngay (ACTIVE)</option>
-                <option value="REQUIRE_SETUP">Yêu cầu hoàn tất hồ sơ khi đăng nhập (REQUIRE_SETUP)</option>
+                <option value="ACTIVE">Kích hoạt ngay</option>
+                <option value="REQUIRE_SETUP">
+                  Yêu cầu hoàn tất hồ sơ khi đăng nhập
+                </option>
               </select>
             </div>
           </div>

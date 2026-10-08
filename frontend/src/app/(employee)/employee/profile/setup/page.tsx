@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-import { useAuth } from '@/lib/auth-context';
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import {
   UserCheck,
   Building2,
@@ -13,30 +13,42 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle2,
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function ProfileSetupPage() {
   const router = useRouter();
   const { user, refreshProfile } = useAuth();
 
-  const [fullName, setFullName] = useState(user?.fullName || '');
-  const [position, setPosition] = useState(user?.position || '');
-  const [departmentId, setDepartmentId] = useState('');
+  const [fullName, setFullName] = useState(user?.fullName || "");
+  const [position, setPosition] = useState(user?.position || "");
+  const [departmentId, setDepartmentId] = useState(
+    user?.departmentId || user?.department?.id || "",
+  );
   const [departments, setDepartments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingDeps, setIsFetchingDeps] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     async function loadDepartments() {
       try {
-        const res = await api.get('/departments?onlyActive=true');
-        setDepartments(res.data || []);
-        if (res.data?.length > 0) {
-          setDepartmentId(res.data[0].id);
+        // const res = await api.get("/departments?onlyActive=true");
+        // setDepartments(res.data || []);
+        // if (res.data?.length > 0) {
+        //   setDepartmentId(res.data[0].id);
+        // }
+        const res = await api.get("/departments?onlyActive=true");
+        const deps = res.data || [];
+        setDepartments(deps);
+
+        const currentDeptId = user?.departmentId || user?.department?.id;
+        if (currentDeptId) {
+          setDepartmentId(currentDeptId);
+        } else if (deps.length > 0) {
+          setDepartmentId(deps[0].id);
         }
       } catch (err) {
-        setErrorMessage('Không thể tải danh sách phòng ban.');
+        setErrorMessage("Không thể tải danh sách phòng ban.");
       } finally {
         setIsFetchingDeps(false);
       }
@@ -47,29 +59,29 @@ export default function ProfileSetupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) {
-      setErrorMessage('Vui lòng nhập họ và tên của bạn.');
+      setErrorMessage("Vui lòng nhập họ và tên của bạn.");
       return;
     }
     if (!departmentId) {
-      setErrorMessage('Vui lòng chọn phòng ban trực thuộc.');
+      setErrorMessage("Vui lòng chọn phòng ban trực thuộc.");
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage('');
+    setErrorMessage("");
 
     try {
-      await api.patch('/me', {
+      await api.patch("/me", {
         fullName: fullName.trim(),
         position: position.trim() || undefined,
         departmentId,
       });
 
       await refreshProfile();
-      router.push('/employee/dashboard');
+      router.push("/employee/dashboard");
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Không thể cập nhật hồ sơ.';
-      setErrorMessage(Array.isArray(msg) ? msg.join(', ') : msg);
+      const msg = err.response?.data?.message || "Không thể cập nhật hồ sơ.";
+      setErrorMessage(Array.isArray(msg) ? msg.join(", ") : msg);
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +98,8 @@ export default function ProfileSetupPage() {
             Thiết Lập Hồ Sơ Ban Đầu
           </h1>
           <p className="text-xs text-slate-500">
-            Chào mừng bạn đến với hệ thống! Vui lòng xác nhận thông tin cá nhân và chọn phòng ban để bắt đầu tham gia các kỳ thi.
+            Chào mừng bạn đến với hệ thống! Vui lòng xác nhận thông tin cá nhân
+            và chọn phòng ban để bắt đầu tham gia các kỳ thi.
           </p>
         </div>
 
@@ -127,12 +140,14 @@ export default function ProfileSetupPage() {
               </div>
               <input
                 type="text"
-                value={user?.email || ''}
+                value={user?.email || ""}
                 disabled
                 className="w-full pl-9 pr-4 py-2.5 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-500 cursor-not-allowed"
               />
             </div>
-            <span className="text-[11px] text-slate-400 mt-1 block">Email được quản lý bởi công ty</span>
+            <span className="text-[11px] text-slate-400 mt-1 block">
+              Email được quản lý bởi công ty
+            </span>
           </div>
 
           <div>
@@ -143,14 +158,18 @@ export default function ProfileSetupPage() {
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                 <Briefcase className="w-4 h-4" />
               </div>
-              <input
-                type="text"
+              <select
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
-                placeholder="VD: Kỹ sư phần mềm, Chuyên viên kinh doanh..."
+                className="w-full pl-9 pr-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm text-slate-900 bg-white cursor-pointer disabled:opacity-50"
                 disabled={isLoading}
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"
-              />
+              >
+                <option value="Chuyên Viên">Chuyên Viên</option>
+                <option value="Phó Phòng">Phó Phòng</option>
+                <option value="Trưởng Phòng">Trưởng Phòng</option>
+                <option value="Phó Giám Đốc">Phó Giám Đốc</option>
+                <option value="Giám Đốc">Giám Đốc</option>
+              </select>
             </div>
           </div>
 
@@ -176,7 +195,8 @@ export default function ProfileSetupPage() {
               </select>
             </div>
             <p className="text-[11px] text-amber-600 mt-1">
-              ⚠️ Lưu ý: Sau bước thiết lập này, bạn sẽ không thể tự thay đổi phòng ban mà chỉ có Quản trị viên mới có quyền điều chỉnh.
+              ⚠️ Lưu ý: Sau bước thiết lập này, bạn sẽ không thể tự thay đổi
+              phòng ban mà chỉ có Quản trị viên mới có quyền điều chỉnh.
             </p>
           </div>
 
