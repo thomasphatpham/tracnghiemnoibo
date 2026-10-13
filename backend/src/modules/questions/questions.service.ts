@@ -11,6 +11,7 @@ import { UpdateQuestionDto } from './dto/update-question.dto';
 import { QueryQuestionsDto } from './dto/query-questions.dto';
 import { QuestionStatus } from '@prisma/client';
 import * as ExcelJS from 'exceljs';
+import * as crypto from 'crypto';
 
 export interface ExcelValidationError {
   row: number;
@@ -285,16 +286,21 @@ export class QuestionsService {
   // EXCEL IMPORT & TEMPLATE
   async generateTemplate(): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Hệ Thống Thi Trắc Nghiệm';
+    workbook.creator = 'Hệ Thống Thi Trắc Nghiệm SDTC';
     workbook.created = new Date();
 
-    // Sheet 1: Danh sách câu hỏi
-    const sheet = workbook.addWorksheet('DanhSachCauHoi', {
+    // Query active departments to put in Sheet 2 and as guidance
+    const departments = await this.prisma.department.findMany({
+      select: { code: true, name: true },
+      orderBy: { code: 'asc' },
+    });
+
+    // Sheet 1: Danh sách câu hỏi (Không cần cột Mã câu hỏi, hệ thống sẽ tự sinh)
+    const sheet1 = workbook.addWorksheet('DanhSachCauHoi', {
       views: [{ showGridLines: true }],
     });
 
-    const headers = [
-      'Mã câu hỏi (*)',
+    const headers1 = [
       'Mã phòng ban (*)',
       'Nội dung câu hỏi (*)',
       'Đáp án A (*)',
@@ -305,20 +311,22 @@ export class QuestionsService {
       'Giải thích đáp án',
     ];
 
-    const headerRow = sheet.addRow(headers);
-    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    headerRow.fill = {
+    const headerRow1 = sheet1.addRow(headers1);
+    headerRow1.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow1.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF1E40AF' }, // Blue 800
+      fgColor: { argb: 'FF0066B1' }, // SAIGONBANK Blue #0066B1
     };
-    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-    headerRow.height = 28;
+    headerRow1.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow1.height = 28;
 
-    // Sample rows
-    sheet.addRow([
-      'TECH-EX-001',
-      'TECH',
+    // Sample rows using actual departments or fallback
+    const sampleDep1 = departments.length > 0 ? departments[0].code : 'TECH';
+    const sampleDep2 = departments.length > 1 ? departments[1].code : 'SALES';
+
+    sheet1.addRow([
+      sampleDep1,
       'Trong hệ điều hành Linux, lệnh nào dùng để hiển thị đường dẫn thư mục hiện tại?',
       'pwd',
       'cd',
@@ -328,10 +336,9 @@ export class QuestionsService {
       'pwd là viết tắt của print working directory.',
     ]);
 
-    sheet.addRow([
-      'SALES-EX-001',
-      'SALES',
-      'Thuật ngữ CRM trong quản trị doanh nghiệp là viết tắt của gì?',
+    sheet1.addRow([
+      sampleDep2,
+      'Thuật ngữ CRM trong quản trị doanh nghiệp là viết tắt của cụm từ gì?',
       'Customer Relationship Management',
       'Customer Record Marketing',
       'Company Resource Management',
@@ -340,17 +347,50 @@ export class QuestionsService {
       'CRM là hệ thống quản lý quan hệ khách hàng.',
     ]);
 
-    // Set column widths
-    sheet.columns = [
-      { width: 18 }, // Mã câu hỏi
-      { width: 18 }, // Mã phòng ban
-      { width: 45 }, // Nội dung
-      { width: 30 }, // A
-      { width: 30 }, // B
-      { width: 30 }, // C
-      { width: 30 }, // D
-      { width: 16 }, // Đáp án đúng
-      { width: 35 }, // Giải thích
+    // Set column widths for Sheet 1
+    sheet1.columns = [
+      { width: 22 }, // Mã phòng ban
+      { width: 48 }, // Nội dung câu hỏi
+      { width: 32 }, // Đáp án A
+      { width: 32 }, // Đáp án B
+      { width: 32 }, // Đáp án C
+      { width: 32 }, // Đáp án D
+      { width: 18 }, // Đáp án đúng
+      { width: 38 }, // Giải thích
+    ];
+
+    // Sheet 2: Danh sách phòng ban (để người dùng tra cứu mã phòng ban)
+    const sheet2 = workbook.addWorksheet('DanhSachPhongBan', {
+      views: [{ showGridLines: true }],
+    });
+
+    const headers2 = [
+      'STT',
+      'Mã phòng ban (Nhập vào cột Mã phòng ban)',
+      'Tên phòng ban',
+    ];
+
+    const headerRow2 = sheet2.addRow(headers2);
+    headerRow2.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow2.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF0066B1' }, // SAIGONBANK Blue #0066B1
+    };
+    headerRow2.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow2.height = 28;
+
+    departments.forEach((dept, idx) => {
+      const row = sheet2.addRow([idx + 1, dept.code, dept.name]);
+      row.getCell(1).alignment = { horizontal: 'center' };
+      row.getCell(2).font = { bold: true };
+      row.getCell(2).alignment = { horizontal: 'center' };
+    });
+
+    sheet2.columns = [
+      { width: 10 }, // STT
+      { width: 38 }, // Mã phòng ban
+      { width: 45 }, // Tên phòng ban
     ];
 
     const buffer = await workbook.xlsx.writeBuffer();
@@ -382,6 +422,12 @@ export class QuestionsService {
     });
     const existingCodeSet = new Set<string>(existingQuestions.map((q) => q.code.toUpperCase()));
 
+    // Check header to detect template format:
+    // Legacy format: column 1 contains "mã câu hỏi" or "code"
+    // New format: column 1 contains "mã phòng ban" or "department"
+    const firstHeaderCell = worksheet.getRow(1).getCell(1).text?.trim().toLowerCase() || '';
+    const isLegacyFormat = firstHeaderCell.includes('câu hỏi') || firstHeaderCell.includes('code');
+
     const seenInFileCodes = new Set<string>();
     const validRows: ValidatedQuestionRow[] = [];
     const errors: ExcelValidationError[] = [];
@@ -391,29 +437,75 @@ export class QuestionsService {
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // Skip header row
 
-      const codeRaw = row.getCell(1).text?.trim();
-      const depCodeRaw = row.getCell(2).text?.trim();
-      const contentRaw = row.getCell(3).text?.trim();
-      const optA = row.getCell(4).text?.trim();
-      const optB = row.getCell(5).text?.trim();
-      const optC = row.getCell(6).text?.trim();
-      const optD = row.getCell(7).text?.trim();
-      const correctRaw = row.getCell(8).text?.trim()?.toUpperCase();
-      const explanationRaw = row.getCell(9).text?.trim();
+      let codeRaw = '';
+      let depCodeRaw = '';
+      let contentRaw = '';
+      let optA = '';
+      let optB = '';
+      let optC = '';
+      let optD = '';
+      let correctRaw = '';
+      let explanationRaw = '';
+
+      if (isLegacyFormat) {
+        codeRaw = row.getCell(1).text?.trim();
+        depCodeRaw = row.getCell(2).text?.trim();
+        contentRaw = row.getCell(3).text?.trim();
+        optA = row.getCell(4).text?.trim();
+        optB = row.getCell(5).text?.trim();
+        optC = row.getCell(6).text?.trim();
+        optD = row.getCell(7).text?.trim();
+        correctRaw = row.getCell(8).text?.trim()?.toUpperCase();
+        explanationRaw = row.getCell(9).text?.trim();
+      } else {
+        // New standard format (No question code column in template)
+        depCodeRaw = row.getCell(1).text?.trim();
+        contentRaw = row.getCell(2).text?.trim();
+        optA = row.getCell(3).text?.trim();
+        optB = row.getCell(4).text?.trim();
+        optC = row.getCell(5).text?.trim();
+        optD = row.getCell(6).text?.trim();
+        correctRaw = row.getCell(7).text?.trim()?.toUpperCase();
+        explanationRaw = row.getCell(8).text?.trim();
+      }
 
       // Check if entire row is empty
-      if (!codeRaw && !depCodeRaw && !contentRaw) {
+      if (!depCodeRaw && !contentRaw && !optA) {
         return;
       }
 
       rowCount++;
       let hasRowError = false;
 
-      // Validate Code
-      if (!codeRaw) {
-        errors.push({ row: rowNumber, field: 'Mã câu hỏi', message: 'Mã câu hỏi không được để trống' });
+      // Validate Department first
+      let depId = '';
+      const depUpper = depCodeRaw ? depCodeRaw.toUpperCase() : '';
+      if (!depCodeRaw) {
+        errors.push({
+          row: rowNumber,
+          code: codeRaw || '—',
+          field: 'Mã phòng ban',
+          message: 'Mã phòng ban không được để trống (tham khảo sheet DanhSachPhongBan)',
+        });
         hasRowError = true;
       } else {
+        if (!depMap.has(depUpper)) {
+          errors.push({
+            row: rowNumber,
+            code: codeRaw || '—',
+            field: 'Mã phòng ban',
+            message: `Mã phòng ban '${depCodeRaw}' không tồn tại trong danh mục hệ thống (xem sheet DanhSachPhongBan)`,
+          });
+          hasRowError = true;
+        } else {
+          depId = depMap.get(depUpper)!;
+        }
+      }
+
+      // Handle & Auto-generate Question Code
+      let finalCode = '';
+      if (codeRaw) {
+        // User explicitly provided a code (in legacy template)
         const codeUpper = codeRaw.toUpperCase();
         if (existingCodeSet.has(codeUpper)) {
           errors.push({
@@ -433,50 +525,41 @@ export class QuestionsService {
           hasRowError = true;
         } else {
           seenInFileCodes.add(codeUpper);
+          finalCode = codeUpper;
         }
-      }
-
-      // Validate Department
-      let depId = '';
-      if (!depCodeRaw) {
-        errors.push({ row: rowNumber, code: codeRaw, field: 'Mã phòng ban', message: 'Mã phòng ban không được để trống' });
-        hasRowError = true;
       } else {
-        const depUpper = depCodeRaw.toUpperCase();
-        if (!depMap.has(depUpper)) {
-          errors.push({
-            row: rowNumber,
-            code: codeRaw,
-            field: 'Mã phòng ban',
-            message: `Mã phòng ban '${depCodeRaw}' không tồn tại trong danh mục hệ thống`,
-          });
-          hasRowError = true;
-        } else {
-          depId = depMap.get(depUpper)!;
-        }
+        // Auto-generate code automatically based on department and hash/random
+        let attempt = 0;
+        const prefix = depUpper || 'Q';
+        do {
+          const randHex = crypto.randomBytes(3).toString('hex').toUpperCase();
+          finalCode = `${prefix}-Q${randHex}`;
+          attempt++;
+        } while ((existingCodeSet.has(finalCode) || seenInFileCodes.has(finalCode)) && attempt < 100);
+        seenInFileCodes.add(finalCode);
       }
 
       // Validate Content
       if (!contentRaw) {
-        errors.push({ row: rowNumber, code: codeRaw, field: 'Nội dung', message: 'Nội dung câu hỏi không được để trống' });
+        errors.push({ row: rowNumber, code: finalCode, field: 'Nội dung', message: 'Nội dung câu hỏi không được để trống' });
         hasRowError = true;
       }
 
       // Validate 4 Options
       if (!optA) {
-        errors.push({ row: rowNumber, code: codeRaw, field: 'Đáp án A', message: 'Đáp án A không được để trống' });
+        errors.push({ row: rowNumber, code: finalCode, field: 'Đáp án A', message: 'Đáp án A không được để trống' });
         hasRowError = true;
       }
       if (!optB) {
-        errors.push({ row: rowNumber, code: codeRaw, field: 'Đáp án B', message: 'Đáp án B không được để trống' });
+        errors.push({ row: rowNumber, code: finalCode, field: 'Đáp án B', message: 'Đáp án B không được để trống' });
         hasRowError = true;
       }
       if (!optC) {
-        errors.push({ row: rowNumber, code: codeRaw, field: 'Đáp án C', message: 'Đáp án C không được để trống' });
+        errors.push({ row: rowNumber, code: finalCode, field: 'Đáp án C', message: 'Đáp án C không được để trống' });
         hasRowError = true;
       }
       if (!optD) {
-        errors.push({ row: rowNumber, code: codeRaw, field: 'Đáp án D', message: 'Đáp án D không được để trống' });
+        errors.push({ row: rowNumber, code: finalCode, field: 'Đáp án D', message: 'Đáp án D không được để trống' });
         hasRowError = true;
       }
 
@@ -484,7 +567,7 @@ export class QuestionsService {
       if (!correctRaw || !['A', 'B', 'C', 'D'].includes(correctRaw)) {
         errors.push({
           row: rowNumber,
-          code: codeRaw,
+          code: finalCode,
           field: 'Đáp án đúng',
           message: `Đáp án đúng phải là một trong các giá trị A, B, C hoặc D (nhận được: '${correctRaw || 'trống'}')`,
         });
@@ -493,8 +576,8 @@ export class QuestionsService {
 
       if (!hasRowError) {
         validRows.push({
-          code: codeRaw.toUpperCase(),
-          departmentCode: depCodeRaw.toUpperCase(),
+          code: finalCode,
+          departmentCode: depUpper,
           departmentId: depId,
           content: contentRaw,
           options: {

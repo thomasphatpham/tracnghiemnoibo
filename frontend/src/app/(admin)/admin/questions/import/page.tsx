@@ -117,7 +117,9 @@ export default function ExcelImportPage() {
               <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
               <span>Import Ngân Hàng Câu Hỏi Từ Excel</span>
             </h1>
-            <p className="text-xs text-slate-500">Tải lên file định dạng .xlsx theo chuẩn quy định</p>
+            <p className="text-xs text-slate-500">
+              Mã câu hỏi tự động sinh • Tra cứu mã phòng ban tại Sheet 2 trong file mẫu
+            </p>
           </div>
         </div>
 
@@ -128,6 +130,20 @@ export default function ExcelImportPage() {
           <Download className="w-4 h-4 text-slate-500" />
           <span>Tải Tệp Mẫu (.xlsx)</span>
         </button>
+      </div>
+
+      {/* Notice Banner */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-3.5 flex items-start gap-3 text-xs text-blue-900">
+        <CheckCircle2 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+        <div className="space-y-0.5">
+          <p className="font-semibold text-blue-950">Mẹo nhập liệu:</p>
+          <p className="text-blue-800">
+            • Bạn <strong className="font-semibold">không cần phải nhập mã câu hỏi</strong>, hệ thống sẽ tự động tạo mã duy nhất theo phòng ban.
+          </p>
+          <p className="text-blue-800">
+            • Vui lòng mở Sheet <strong className="font-semibold">"DanhSachPhongBan"</strong> trong file mẫu tải về để tra cứu chính xác mã phòng ban khi nhập liệu.
+          </p>
+        </div>
       </div>
 
       {/* Upload Zone */}
@@ -280,7 +296,7 @@ export default function ExcelImportPage() {
                 <table className="w-full text-left border-collapse text-xs">
                   <thead className="bg-slate-50 text-slate-500 font-semibold uppercase sticky top-0">
                     <tr>
-                      <th className="py-2 px-3">Mã</th>
+                      <th className="py-2 px-3">Mã (Tự sinh)</th>
                       <th className="py-2 px-3">Phòng</th>
                       <th className="py-2 px-3">Nội Dung</th>
                       <th className="py-2 px-3 text-center">Đáp Án Đúng</th>
@@ -289,7 +305,7 @@ export default function ExcelImportPage() {
                   <tbody className="divide-y divide-slate-100">
                     {validationResult.validRows.map((r: any, idx: number) => (
                       <tr key={idx} className="hover:bg-slate-50">
-                        <td className="py-2 px-3 font-mono font-bold text-slate-800">{r.code}</td>
+                        <td className="py-2 px-3 font-mono font-bold text-emerald-700">{r.code}</td>
                         <td className="py-2 px-3 font-semibold text-blue-600">{r.departmentCode}</td>
                         <td className="py-2 px-3 text-slate-800 max-w-xs truncate">{r.content}</td>
                         <td className="py-2 px-3 text-center">
