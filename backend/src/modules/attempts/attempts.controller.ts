@@ -58,9 +58,4 @@ export class AttemptsController {
   async getResult(@Param('id') id: string, @CurrentUser() user: any) {
     return this.attemptsService.getResult(id, user.id, user.role);
   }
-
-  @Get(':id/cheat-answers')
-  async getCheatAnswers(@Param('id') id: string, @CurrentUser() user: any) {
-    return this.attemptsService.getCheatAnswers(id, user.id, user.role);
-  }
 }

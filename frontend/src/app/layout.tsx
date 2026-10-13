@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
+import { ClientInit } from '@/components/ClientInit';
 
 export const metadata: Metadata = {
   title: 'Hệ Thống Thi Trắc Nghiệm Trực Tuyến Nội Bộ',
@@ -38,6 +39,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-slate-50 text-slate-900" suppressHydrationWarning>
+        <ClientInit />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

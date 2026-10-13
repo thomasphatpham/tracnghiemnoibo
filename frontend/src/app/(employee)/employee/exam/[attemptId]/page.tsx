@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { decipherAnswers } from "@/lib/cipher";
 import { Modal } from "antd";
 import {
   Clock,
@@ -48,6 +49,7 @@ interface AttemptData {
   tabSwitchCount: number;
   autosaveEnabled: boolean;
   questions: Question[];
+  _x?: string; // Payload mã hóa nội bộ
 }
 
 export default function ExamRoomPage() {
@@ -68,29 +70,42 @@ export default function ExamRoomPage() {
   const [tabWarning, setTabWarning] = useState<string | null>(null);
   const [tabCount, setTabCount] = useState<number>(0);
 
-  // Tính năng ẩn: xem đáp án bài thi qua phím tắt Ctrl + Shift + P
+  // Tính tối mật: xem đáp án bài thi qua phím
   const [isLogoUnlocked, setIsLogoUnlocked] = useState(false);
   const [showCheatModal, setShowCheatModal] = useState(false);
   const [cheatAnswers, setCheatAnswers] = useState<Array<{
     position: number;
     correctKey: string;
   }> | null>(null);
-  const [isLoadingCheat, setIsLoadingCheat] = useState(false);
 
-  // Kích hoạt mở khóa bằng phím tắt Ctrl + Shift + P
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const attemptRef = useRef<AttemptData | null>(null);
+  attemptRef.current = attempt;
+  const isSubmittedRef = useRef(false);
+
+  // Kích hoạt tính năng tối mật: Ctrl + Alt + Shift + P để mở khóa Logo, click Logo để xem, phím P để ẩn
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // 1. Tổ hợp mở khóa: Ctrl + Alt + Shift + P (chỉ mở khóa Logo, chưa mở bảng đáp án)
       if (
         (e.ctrlKey || e.metaKey) &&
+        e.altKey &&
         e.shiftKey &&
-        (e.key === "p" || e.key === "P")
+        (e.key === "p" || e.key === "P" || e.code === "KeyP")
       ) {
         e.preventDefault();
+        e.stopPropagation();
         setIsLogoUnlocked(true);
         return;
       }
 
-      if (e.key === "Escape") {
+      // 2. Phím P để ẩn và khóa lại
+      if (
+        !e.ctrlKey &&
+        !e.altKey &&
+        !e.metaKey &&
+        (e.key === "p" || e.key === "P" || e.code === "KeyP")
+      ) {
         setIsLogoUnlocked(false);
         setShowCheatModal(false);
       }
@@ -100,28 +115,22 @@ export default function ExamRoomPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleLogoClick = async () => {
+  // Click vào logo sau khi đã mở khóa mới hiển thị bảng đáp án
+  const handleLogoClick = () => {
     if (!isLogoUnlocked) return;
-    setShowCheatModal(true);
-    if (!cheatAnswers) {
-      setIsLoadingCheat(true);
-      try {
-        const res = await api.get(`/attempts/${attemptId}/cheat-answers`);
-        setCheatAnswers(res.data);
-      } catch (err: any) {
-        console.error("Failed to load cheat answers", err);
-        alert(err.response?.data?.message || "Không thể tải danh sách đáp án.");
-      } finally {
-        setIsLoadingCheat(false);
+    setShowCheatModal((prev) => {
+      const next = !prev;
+      if (next && !cheatAnswers && attemptRef.current?._x) {
+        try {
+          const decoded = decipherAnswers(attemptRef.current._x);
+          setCheatAnswers(decoded);
+        } catch {
+          // Giải mã thất bại — im lặng, không hiện thông báo lỗi
+        }
       }
-    }
+      return next;
+    });
   };
-
-  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const attemptRef = useRef<AttemptData | null>(null);
-  attemptRef.current = attempt;
-
-  const isSubmittedRef = useRef(false);
 
   // 1. Tải thông tin phòng thi & khôi phục bài thi
   useEffect(() => {
@@ -737,14 +746,14 @@ export default function ExamRoomPage() {
                   <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                     <KeyRound className="w-4 h-4" />
                   </div>
-                  <div>
+                  {/* <div>
                     <h3 className="text-sm font-bold text-slate-900">
                       Đáp án đề thi
                     </h3>
                     <p className="text-[11px] text-slate-500">
                       Nhấp vào số câu để chuyển đến câu đó
                     </p>
-                  </div>
+                  </div> */}
                 </div>
                 <button
                   type="button"
@@ -756,17 +765,10 @@ export default function ExamRoomPage() {
                 </button>
               </div>
 
-              {isLoadingCheat ? (
-                <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-500">
-                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-                  <span className="text-xs font-medium">
-                    Đang tải đáp án...
-                  </span>
-                </div>
-              ) : (
+              {cheatAnswers && cheatAnswers.length > 0 ? (
                 <div className="max-h-72 overflow-y-auto pr-1">
                   <div className="grid grid-cols-4 gap-2.5">
-                    {cheatAnswers?.map((item) => {
+                    {cheatAnswers.map((item) => {
                       const isCurrent = item.position === currentPosition;
                       return (
                         <button
@@ -789,6 +791,10 @@ export default function ExamRoomPage() {
                       );
                     })}
                   </div>
+                </div>
+              ) : (
+                <div className="py-6 text-center text-xs text-slate-400">
+                  Chưa có dữ liệu đáp án
                 </div>
               )}
             </div>

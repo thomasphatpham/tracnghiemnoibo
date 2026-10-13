@@ -1,0 +1,440 @@
+================================================================================
+  NỘI DUNG KỊCH BẢN VIDEO GIỚI THIỆU
+  HỆ THỐNG THI TRẮC NGHIỆM NỘI BỘ - SAIGONBANK (SDTC)
+  Phiên bản: 1.0  |  Tổng thời lượng: ~6 phút
+  Dùng cho: Google Flow (Veo) / AI Video Generation
+================================================================================
+
+THÔNG TIN SẢN XUẤT
+------------------
+Tên sản phẩm  : Hệ Thống Thi Trắc Nghiệm Nội Bộ SAIGONBANK (SDTC)
+Màu chủ đạo  : #0066B1 (Xanh SAIGONBANK)
+Giọng đọc    : Tiếng Việt - Giọng nữ miền Nam, truyền cảm, chuyên nghiệp
+Nhạc nền     : Corporate - nhẹ nhàng, hiện đại, không lời (BPM 85–100)
+Độ phân giải : 1920x1080 (Full HD 16:9)
+Font          : Inter / Roboto — màu trắng trên nền xanh #0066B1
+
+
+================================================================================
+CẢNH 1 — MỞ ĐẦU  (0:00 – 0:35 | 35 giây)
+================================================================================
+
+[MÔ TẢ HÌNH ẢNH / VISUAL DESCRIPTION]
+- Màn hình đen. Từ trung tâm, logo SAIGONBANK 3D xuất hiện với hiệu ứng "reveal"
+  ánh sáng xanh (#0066B1) lan toa ra ngoài như sóng nước.
+- Logo xoay nhẹ 15° rồi dừng ở vị trí trung tâm. Nền chuyển sang gradient
+  xanh đậm → xanh nhạt.
+- Sau 3 giây: hiệu ứng "split-screen mosaic" — màn hình vỡ thành 4 ô:
+    · Ô trên trái  → Hình ảnh Admin Dashboard (ảnh SDTC #01)
+    · Ô trên phải  → Hình ảnh Báo cáo thống kê kỳ thi (ảnh SDTC #17)
+    · Ô dưới trái  → Hình ảnh Phòng thi trực tuyến (ảnh SDTC #25)
+    · Ô dưới phải  → Hình ảnh Kết quả thi (ảnh SDTC #26)
+- Các ô xuất hiện lần lượt với hiệu ứng "slide-in" từ 4 góc màn hình.
+- Sau 2 giây collage: Tất cả mờ dần, text title xuất hiện chính giữa nền xanh:
+    DÒNG 1 (lớn, trắng): "HỆ THỐNG THI TRẮC NGHIỆM NỘI BỘ"
+    DÒNG 2 (nhỏ hơn, vàng nhạt): "SAIGONBANK — SDTC"
+- Subtitle phụ (chữ nhỏ, trắng): "Chuyển đổi số. Công bằng. Minh bạch."
+- Kết thúc cảnh: Fade out nhẹ sang Cảnh 2.
+
+[LỜI DẪN / NARRATION — VOICE OVER]
+"Trong hành trình chuyển đổi số toàn diện của SAIGONBANK — chúng tôi xây dựng
+ một hệ thống thi trắc nghiệm nội bộ hiện đại: minh bạch, công bằng và bảo mật.
+ Hãy cùng khám phá SDTC — nền tảng đánh giá năng lực nghiệp vụ thế hệ mới
+ dành riêng cho đội ngũ nhân viên SAIGONBANK."
+
+[ÂM THANH / AUDIO CUE]
+- Nhạc nền: Corporate Intro — crescendo nhẹ khi logo xuất hiện, giữ ổn định
+  khi montage 4 ô hiển thị.
+- SFX: Âm "whoosh" nhẹ khi logo 3D reveal.
+- Voice-over bắt đầu từ giây thứ 4 (sau logo đã ổn định).
+
+[ẢNH SDTC THAM CHIẾU]
+  #01 — Admin Dashboard (ô trên trái)
+  #17 — Thống kê theo kỳ thi — 6 KPI (ô trên phải)
+  #25 — Phòng thi trực tuyến (ô dưới trái)
+  #26 — Kết quả thi (ô dưới phải)
+
+
+================================================================================
+CẢNH 2 — ĐĂNG NHẬP & BẢO MẬT TÀI KHOẢN  (0:35 – 1:20 | 45 giây)
+================================================================================
+
+[MÔ TẢ HÌNH ẢNH / VISUAL DESCRIPTION]
+- Màn hình trình chiếu trang đăng nhập của hệ thống (giao diện web thực tế).
+  Nền gradient xanh SAIGONBANK. Ô login trung tâm với logo.
+- Animation: con trỏ chuột di chuyển đến ô "Email", gõ "admin@saigonbank.com.vn",
+  tiếp theo nhập mật khẩu (hiển thị dấu chấm ẩn), sau đó click "Đăng nhập".
+- Hiệu ứng chuyển cảnh "slide" sang Dashboard Admin (ảnh SDTC #01):
+    · Các thẻ KPI hiển thị số đếm animation (counter-up): Tổng người dùng,
+      Câu hỏi, Kỳ thi đang chạy, Tỷ lệ đạt.
+- Sau 5 giây: ZOOM OUT → xuất hiện badge icon khóa (🔒) overlay trên góc phải.
+- Chèn text callout (box vàng nhạt, viền xanh):
+    "Single Active Session — Chỉ 1 phiên đăng nhập tại một thời điểm"
+- Transition: Fade → Màn hình "Yêu cầu chờ duyệt" (ảnh SDTC #03).
+  Giải thích luồng: Nhân viên mới tự đăng ký → Admin xét duyệt → Cấp tài khoản.
+- Animation: Highlight nút "Duyệt" / "Từ chối" trên danh sách yêu cầu.
+- Chèn text callout (box xanh, chữ trắng):
+    "Tự phục vụ — Không cần IT can thiệp thủ công"
+
+[LỜI DẪN / NARRATION — VOICE OVER]
+"Hệ thống bắt đầu từ cổng đăng nhập bảo mật. Mỗi nhân viên chỉ được phép
+ hoạt động tại một phiên duy nhất — cơ chế Single Active Session ngăn chặn
+ mọi truy cập trái phép từ xa.
+ 
+ Đặc biệt, nhân viên mới có thể tự đăng ký tài khoản trực tuyến. Yêu cầu
+ được gửi thẳng đến Admin để xét duyệt — không cần bộ phận IT can thiệp thủ công,
+ tiết kiệm thời gian và nhân lực vận hành."
+
+[ÂM THANH / AUDIO CUE]
+- Nhạc nền: Duy trì tiết tấu nhẹ nhàng, đều.
+- SFX: Âm "click" nhẹ khi nhấn nút đăng nhập.
+- SFX: Âm "ding" nhẹ khi badge khóa xuất hiện (nhấn mạnh bảo mật).
+
+[ẢNH SDTC THAM CHIẾU]
+  #01 — Admin Dashboard (hiển thị KPI tổng quan)
+  #03 — Yêu cầu chờ duyệt / Account Requests (luồng tự đăng ký)
+  #04 — Thêm người dùng mới (tuỳ chọn: hiển thị thêm nếu thời gian cho phép)
+
+
+================================================================================
+CẢNH 3 — CỔNG THÍ SINH: TRẢI NGHIỆM THI TRỰC TUYẾN  (1:20 – 2:30 | 70 giây)
+================================================================================
+
+[MÔ TẢ HÌNH ẢNH / VISUAL DESCRIPTION]
+PHẦN A — Dashboard nhân viên (15 giây):
+- Chuyển sang giao diện nhân viên. Màn hình Dashboard cá nhân (ảnh SDTC #22).
+- 4 thẻ KPI cá nhân hiện lên với counter-up animation:
+    · Kỳ thi đã tham gia | Điểm trung bình | Tỷ lệ đạt | Kỳ thi sắp tới.
+- Vòng tròn tiến trình (progress ring) xoay tròn hiển thị tỷ lệ %.
+
+PHẦN B — Danh sách & Quy định thi (20 giây):
+- Transition slide → Danh sách kỳ thi (ảnh SDTC #23).
+  Highlight một kỳ thi: "Thi Nghiệp Vụ Tín Dụng Q3/2025".
+  Badge trạng thái: ĐANG MỞ (màu xanh lá).
+- Click vào → Màn hình Quy định thi (ảnh SDTC #24).
+  Hiển thị: Thời gian, số câu, điểm đạt, nội quy chống gian lận.
+  Animation: Checkbox "Tôi đã đọc và đồng ý" được tick.
+  Nút "BẮT ĐẦU THI" sáng lên (pulse effect).
+
+PHẦN C — Phòng thi trực tuyến (35 giây):
+- Transition → Phòng thi (ảnh SDTC #25). Toàn màn hình.
+- Highlight các thành phần quan trọng lần lượt (mỗi thành phần 4-5 giây):
+    · Thanh đếm ngược thời gian (góc trên phải) — số giảm dần animation.
+    · Số thứ tự câu hỏi và phân trang.
+    · Câu hỏi và 4 đáp án (A, B, C, D).
+    · Thanh tiến trình phía dưới (% hoàn thành).
+- Animation: Click chọn đáp án → Đáp án highlight màu xanh dương.
+- Chèn text callout góc dưới: "Tự động lưu — Không lo mất bài khi mất điện"
+- Màn hình nhấp nháy nhẹ (simulate câu hỏi bị xáo trộn, không cần hiển thị rõ).
+
+[LỜI DẪN / NARRATION — VOICE OVER]
+"Từ Dashboard cá nhân, nhân viên theo dõi toàn bộ lịch sử thi — điểm số,
+ tỷ lệ đạt và các kỳ thi sắp tới — ngay trong một màn hình duy nhất.
+ 
+ Khi vào phòng thi, giao diện được thiết kế tối giản, tập trung hoàn toàn
+ vào nội dung. Thời gian đếm ngược rõ ràng. Tiến trình bài thi trực quan.
+ 
+ Đặc biệt, hệ thống tự động lưu bài liên tục — dù mạng chập chờn hay máy
+ tính gặp sự cố, thí sinh không bao giờ lo mất bài làm của mình."
+
+[ÂM THANH / AUDIO CUE]
+- Nhạc nền: Tiết tấu tăng nhẹ ở Phần C (cảm giác tập trung, căng thẳng nhẹ).
+- SFX: Tiếng "tick" đồng hồ đếm ngược (rất nhẹ, không gây phân tâm).
+- SFX: Âm "click" khi chọn đáp án.
+
+[ẢNH SDTC THAM CHIẾU]
+  #22 — Employee Dashboard (4 KPI cá nhân)
+  #23 — Danh sách kỳ thi (Employee)
+  #24 — Quy định thi
+  #25 — Phòng thi trực tuyến (câu hỏi + đếm ngược)
+
+
+================================================================================
+CẢNH 4 — CHỐNG GIAN LẬN & KẾT QUẢ THI  (2:30 – 3:30 | 60 giây)
+================================================================================
+
+[MÔ TẢ HÌNH ẢNH / VISUAL DESCRIPTION]
+PHẦN A — 4 Lớp chống gian lận (30 giây):
+- Nền tối (gradient đen-xanh). Text trắng xuất hiện lần lượt từng dòng:
+    "HỆ THỐNG BẢO VỆ TÍNH CÔNG BẰNG — 4 TẦNG BẢO VỆ"
+- Từng icon + text xuất hiện với animation "pop-in":
+    🔀 TẦNG 1: Câu hỏi xáo trộn ngẫu nhiên (Fisher-Yates Shuffle)
+    📝 TẦNG 2: Đáp án đảo vị trí — loại trừ "học tủ vị trí"
+    🔒 TẦNG 3: Khóa tab / rời màn hình → Tự động cảnh báo và thu bài
+    📸 TẦNG 4: Snapshot bất biến — Đề thi được chốt, không thể chỉnh sửa khi đang thi
+- Mỗi tầng xuất hiện cách nhau 1.5 giây.
+- Sau khi đủ 4 tầng: Shield icon lớn màu xanh lá ✅ "TOÀN VẸN DỮ LIỆU ĐẢM BẢO"
+
+PHẦN B — Kết quả thi (30 giây):
+- Transition "slide-up" → Màn hình kết quả thi (ảnh SDTC #26).
+- Highlight lần lượt:
+    · Điểm số tổng kết (số lớn, bold, màu xanh/đỏ tùy đạt/không đạt).
+    · Badge trạng thái: "ĐẠT" (xanh lá) hoặc "CHƯA ĐẠT" (đỏ).
+    · Thống kê chi tiết: Số câu đúng / sai / bỏ trống.
+    · Thời gian làm bài.
+- Animation: Confetti rơi nhẹ nếu đạt.
+- Chèn text callout: "Kết quả tức thì — Không cần chờ chấm thủ công"
+
+[LỜI DẪN / NARRATION — VOICE OVER]
+"Tính công bằng là giá trị cốt lõi. Hệ thống áp dụng bốn tầng bảo vệ chống
+ gian lận đồng thời: câu hỏi xáo trộn, đáp án đảo vị trí, khóa tab tự động —
+ và đặc biệt, snapshot bất biến đảm bảo đề thi không thể bị thay đổi khi
+ kỳ thi đang diễn ra.
+ 
+ Ngay khi nộp bài, kết quả hiển thị tức thì — điểm số, trạng thái đạt hay
+ chưa đạt, thống kê chi tiết từng câu. Không cần chờ đợi. Không cần chấm tay."
+
+[ÂM THANH / AUDIO CUE]
+- Nhạc nền Phần A: Nhịp điệu hơi hùng tráng khi trình bày 4 tầng bảo vệ.
+- Nhạc nền Phần B: Chuyển sang vui tươi, nhẹ nhàng hơn.
+- SFX: Âm "shield lock" nhẹ khi 4 tầng xuất hiện.
+- SFX: Âm "fanfare" nhỏ khi confetti xuất hiện (kết quả đạt).
+
+[ẢNH SDTC THAM CHIẾU]
+  #25 — Phòng thi (background mờ trong Phần A)
+  #26 — Kết quả thi (Phần B chính)
+
+
+================================================================================
+CẢNH 5 — CỔNG QUẢN TRỊ: QUẢN LÝ TOÀN DIỆN  (3:30 – 4:35 | 65 giây)
+================================================================================
+
+[MÔ TẢ HÌNH ẢNH / VISUAL DESCRIPTION]
+PHẦN A — Quản lý tổ chức (20 giây):
+- Transition → Giao diện Admin. Text overlay: "DÀNH CHO QUẢN TRỊ VIÊN".
+- Danh sách phòng ban (ảnh SDTC #06) — các hàng phòng ban, số nhân viên.
+- Animation: Click "Thêm phòng ban" → Modal thêm mới (ảnh SDTC #07) hiện lên.
+- Transition → Danh sách người dùng (ảnh SDTC #02):
+    · Bảng danh sách, search bar, filter, badge role (ADMIN / EMPLOYEE).
+    · Highlight dropdown "Phân quyền" và "Trạng thái tài khoản".
+
+PHẦN B — Quản lý câu hỏi (20 giây):
+- Transition → Danh sách câu hỏi (ảnh SDTC #09).
+    · Bảng danh sách, filter theo độ khó, loại câu hỏi, phòng ban.
+- Animation: Click "Thêm câu hỏi" → Form thêm mới (ảnh SDTC #10):
+    · Trường nhập: Nội dung câu hỏi, 4 đáp án, đáp án đúng, độ khó, danh mục.
+    · Chèn callout: "Ngân hàng câu hỏi tập trung — Quản lý dễ dàng"
+
+PHẦN C — Tạo kỳ thi & Thuật toán phân bổ (25 giây):
+- Transition → Danh sách kỳ thi (ảnh SDTC #12).
+- Animation: Click "Tạo kỳ thi mới":
+    · Bước 1 (ảnh SDTC #13): Thông tin chung — Tên kỳ thi, thời gian, số câu hỏi,
+      điểm đạt, thời hạn đăng ký.
+    · Bước 2 (ảnh SDTC #14): Phân bổ % câu hỏi theo phòng ban —
+      slider/input % cho từng phòng ban.
+- Text callout xuất hiện:
+    "Thuật toán Largest Remainder Method — Phân bổ câu hỏi tuyệt đối công bằng
+     giữa các phòng ban. Mọi đơn vị đều được đại diện đúng tỷ lệ."
+- Chèn mini infographic: Ví dụ tính toán phân bổ (dạng bảng đơn giản).
+
+[LỜI DẪN / NARRATION — VOICE OVER]
+"Ở cổng quản trị, Admin kiểm soát toàn bộ hệ thống — từ cơ cấu tổ chức,
+ phân quyền nhân sự, đến ngân hàng câu hỏi đa danh mục.
+ 
+ Khi tạo kỳ thi, Admin chỉ cần hai bước: Thiết lập thông tin chung —
+ rồi phân bổ tỷ lệ câu hỏi theo từng phòng ban.
+ 
+ Hệ thống tự động áp dụng thuật toán Largest Remainder Method —
+ đảm bảo số câu hỏi phân bổ là số nguyên, công bằng tuyệt đối,
+ không phòng ban nào bị thiệt thòi."
+
+[ÂM THANH / AUDIO CUE]
+- Nhạc nền: Giữ nhịp ổn định, chuyên nghiệp.
+- SFX: Âm "slide" khi chuyển giữa các Phần A/B/C.
+- SFX: Âm "pop" nhẹ khi modal/form xuất hiện.
+
+[ẢNH SDTC THAM CHIẾU]
+  #02 — Danh sách người dùng
+  #06 — Danh sách phòng ban
+  #07 — Thêm phòng ban mới
+  #09 — Danh sách câu hỏi
+  #10 — Thêm câu hỏi mới
+  #12 — Danh sách kỳ thi
+  #13 — Tạo kỳ thi — Bước 1 (thông tin chung)
+  #14 — Tạo kỳ thi — Bước 2 (phân bổ % phòng ban)
+
+
+================================================================================
+CẢNH 6 — BÁO CÁO ĐA CHIỀU & MINH BẠCH TUYỆT ĐỐI  (4:35 – 5:25 | 50 giây)
+================================================================================
+
+[MÔ TẢ HÌNH ẢNH / VISUAL DESCRIPTION]
+PHẦN A — Báo cáo thống kê kỳ thi (25 giây):
+- Transition → Trang báo cáo thống kê (ảnh SDTC #17):
+    · 6 thẻ KPI tổng quan: Tổng thí sinh, Tỷ lệ tham gia, Điểm TB, Tỷ lệ đạt,
+      Điểm cao nhất, Điểm thấp nhất.
+    · Counter-up animation trên từng số liệu.
+- Transition → Hiệu suất phòng ban (ảnh SDTC #18):
+    · Bảng/biểu đồ so sánh điểm trung bình, tỷ lệ đạt theo từng phòng ban.
+    · Highlight phòng ban có kết quả cao nhất.
+- Animation: Click vào một phòng ban → Modal danh sách thí sinh (ảnh SDTC #19):
+    · Bảng chi tiết: Họ tên, Điểm, Trạng thái, Thời gian nộp.
+    · Nút "Xuất Excel" sáng lên.
+- Chèn callout: "Xuất báo cáo Excel một click — Sẵn sàng gửi Ban lãnh đạo"
+
+PHẦN B — Audit Trail / Lịch sử hoạt động (25 giây):
+- Transition → Danh sách lịch sử hoạt động (ảnh SDTC #20):
+    · Bảng log: Người dùng, Hành động, Đối tượng, Thời gian, IP.
+    · 20+ loại hành động được ghi nhận.
+- Animation: Click vào một bản ghi → Modal chi tiết JSON (ảnh SDTC #21):
+    · Hiển thị payload thay đổi (before/after) dạng JSON.
+- Chèn callout màu vàng:
+    "Audit Trail — Mọi thao tác đều có dấu vết. Minh bạch 100%."
+- Text nhỏ phía dưới: "Không ai có thể xóa lịch sử. Dữ liệu bất biến."
+
+[LỜI DẪN / NARRATION — VOICE OVER]
+"Sau mỗi kỳ thi, hệ thống tự động tổng hợp báo cáo đa chiều — từ tổng quan
+ toàn ngân hàng đến từng phòng ban, từng cá nhân. Chỉ một cú click,
+ báo cáo Excel hoàn chỉnh sẵn sàng gửi Ban lãnh đạo.
+ 
+ Và để đảm bảo minh bạch tuyệt đối — mọi thao tác trong hệ thống đều được
+ ghi lại vào Audit Trail: ai làm gì, khi nào, từ địa chỉ IP nào.
+ Không ai có thể xóa dấu vết. Dữ liệu là bất biến."
+
+[ÂM THANH / AUDIO CUE]
+- Nhạc nền Phần A: Vui tươi, tích cực khi số liệu đẹp hiện ra.
+- Nhạc nền Phần B: Trở lại trang nghiêm, hùng tráng nhẹ.
+- SFX: Âm "counter tick" khi các số KPI đếm lên.
+- SFX: Âm "Excel export" (file download sound) khi nút Xuất Excel được nhấn.
+
+[ẢNH SDTC THAM CHIẾU]
+  #17 — Thống kê theo kỳ thi (6 KPI + biểu đồ)
+  #18 — Hiệu suất phòng ban
+  #19 — Chi tiết kỳ thi (Modal danh sách thí sinh)
+  #20 — Danh sách lịch sử hoạt động (Audit Logs)
+  #21 — Chi tiết lịch sử (Modal JSON payload)
+
+
+================================================================================
+CẢNH 7 — TỔNG KẾT & OUTRO  (5:25 – 6:00 | 35 giây)
+================================================================================
+
+[MÔ TẢ HÌNH ẢNH / VISUAL DESCRIPTION]
+- Màn hình chuyển sang nền xanh đậm SAIGONBANK (#0066B1).
+- Hiệu ứng "4-grid collage" xuất hiện trơn tru — 4 màn hình đại diện:
+    · Ô 1 (trên trái) : Phòng thi — Thí sinh đang làm bài (ảnh SDTC #25)
+    · Ô 2 (trên phải) : Kết quả thi — Điểm số & badge ĐẠT (ảnh SDTC #26)
+    · Ô 3 (dưới trái) : Báo cáo thống kê — 6 KPI (ảnh SDTC #17)
+    · Ô 4 (dưới phải) : Audit Trail — Bảng log minh bạch (ảnh SDTC #20)
+- Các ô có viền trắng mỏng, bo góc nhẹ.
+- Sau 5 giây: Collage mờ dần. Logo SAIGONBANK 3D xuất hiện lại chính giữa,
+  cùng với 4 giá trị cốt lõi của SDTC xuất hiện lần lượt bên dưới:
+    ✅  MINH BẠCH        ✅  CÔNG BẰNG
+    ✅  BẢO MẬT          ✅  HIỆU QUẢ
+- Tagline lớn xuất hiện: "SDTC — NỀN TẢNG ĐÁNH GIÁ NĂNG LỰC THỜI ĐẠI SỐ"
+- Text nhỏ cuối: "© SAIGONBANK — Hệ Thống Thi Trắc Nghiệm Nội Bộ | 2025"
+- Fade to black. Kết thúc.
+
+[LỜI DẪN / NARRATION — VOICE OVER]
+"SDTC — Hệ Thống Thi Trắc Nghiệm Nội Bộ SAIGONBANK —
+ không chỉ là một công cụ thi cử.
+ 
+ Đây là cam kết của SAIGONBANK với đội ngũ nhân viên:
+ một môi trường đánh giá công bằng, minh bạch, và hiện đại.
+ 
+ Nơi mỗi kết quả đều xứng đáng. Mỗi nỗ lực đều được ghi nhận.
+ 
+ SAIGONBANK — Vươn tầm. Đổi mới. Phát triển bền vững."
+
+[ÂM THANH / AUDIO CUE]
+- Nhạc nền: Crescendo trang trọng, đạt đỉnh khi tagline xuất hiện.
+- SFX: Âm "chime" khi mỗi giá trị cốt lõi (✅) hiện ra.
+- Nhạc fade out cùng với màn hình fade to black.
+
+[ẢNH SDTC THAM CHIẾU]
+  #25 — Phòng thi trực tuyến (ô 1)
+  #26 — Kết quả thi (ô 2)
+  #17 — Thống kê kỳ thi (ô 3)
+  #20 — Audit Trail (ô 4)
+
+
+================================================================================
+BẢNG TỔNG HỢP — TIMELINE TOÀN BỘ VIDEO
+================================================================================
+
+  Cảnh  |  Thời gian       |  Thời lượng  |  Chủ đề chính
+  -------|------------------|--------------|----------------------------------
+    1    |  0:00 – 0:35     |  35 giây     |  Mở đầu — Logo + Montage
+    2    |  0:35 – 1:20     |  45 giây     |  Đăng nhập & Bảo mật tài khoản
+    3    |  1:20 – 2:30     |  70 giây     |  Cổng Thí sinh — Trải nghiệm thi
+    4    |  2:30 – 3:30     |  60 giây     |  Chống gian lận & Kết quả thi
+    5    |  3:30 – 4:35     |  65 giây     |  Cổng Admin — Quản lý toàn diện
+    6    |  4:35 – 5:25     |  50 giây     |  Báo cáo & Audit Trail
+    7    |  5:25 – 6:00     |  35 giây     |  Tổng kết & Outro
+  -------|------------------|--------------|----------------------------------
+  TỔNG  |  0:00 – 6:00     |  6 phút      |
+
+================================================================================
+BẢNG TỔNG HỢP — ẢNH SDTC SỬ DỤNG THEO CẢNH
+================================================================================
+
+  Ảnh # |  Tên màn hình                         |  Cảnh sử dụng
+  -------|---------------------------------------|------------------
+   #01   |  Admin Dashboard                      |  Cảnh 1, Cảnh 2
+   #02   |  Danh sách người dùng                 |  Cảnh 5
+   #03   |  Yêu cầu chờ duyệt (Account Request) |  Cảnh 2
+   #04   |  Thêm người dùng mới                  |  Cảnh 2 (phụ)
+   #06   |  Danh sách phòng ban                  |  Cảnh 5
+   #07   |  Thêm phòng ban mới                   |  Cảnh 5
+   #09   |  Danh sách câu hỏi                    |  Cảnh 5
+   #10   |  Thêm câu hỏi mới                     |  Cảnh 5
+   #12   |  Danh sách kỳ thi (Admin)             |  Cảnh 5
+   #13   |  Tạo kỳ thi — Bước 1                  |  Cảnh 5
+   #14   |  Tạo kỳ thi — Bước 2 (phân bổ %)     |  Cảnh 5
+   #17   |  Thống kê kỳ thi — 6 KPI              |  Cảnh 1, Cảnh 6, Cảnh 7
+   #18   |  Hiệu suất phòng ban                  |  Cảnh 6
+   #19   |  Chi tiết kỳ thi (modal thí sinh)     |  Cảnh 6
+   #20   |  Danh sách Audit Logs                 |  Cảnh 6, Cảnh 7
+   #21   |  Chi tiết log (Modal JSON)            |  Cảnh 6
+   #22   |  Employee Dashboard — 4 KPI           |  Cảnh 3
+   #23   |  Danh sách kỳ thi (Employee)          |  Cảnh 3
+   #24   |  Quy định thi                         |  Cảnh 3
+   #25   |  Phòng thi trực tuyến                 |  Cảnh 1, Cảnh 3, Cảnh 4, Cảnh 7
+   #26   |  Kết quả thi                          |  Cảnh 1, Cảnh 4, Cảnh 7
+   #27   |  Hồ sơ cá nhân (Employee)             |  (Dự phòng, dùng nếu dư thời gian)
+
+================================================================================
+GHI CHÚ KỸ THUẬT CHO NGƯỜI TẠO VIDEO (GOOGLE FLOW / VEO)
+================================================================================
+
+1. HIỆU ỨNG CHUYỂN CẢNH ĐỀ NGHỊ:
+   - Giữa các Cảnh: Cross-fade (0.8 giây)
+   - Giữa các Phần trong cùng Cảnh: Slide (0.4 giây) hoặc Cut thẳng
+   - Cảnh 1 mở đầu: Fade từ đen lên
+   - Cảnh 7 kết thúc: Fade về đen
+
+2. TYPOGRAPHY / CHỮ:
+   - Font: Inter Bold hoặc Roboto Bold
+   - Màu chữ chính: Trắng (#FFFFFF) trên nền xanh
+   - Callout box: Nền vàng nhạt (#FFF9C4), viền xanh (#0066B1), chữ tối
+   - Highlight: Nền xanh dương nhạt (#E3F2FD)
+
+3. MÀUI SẮC CHÍNH:
+   - Primary: #0066B1 (SAIGONBANK Blue)
+   - Secondary: #FFD700 (Gold — dùng cho accent)
+   - Success: #4CAF50 (Xanh lá — kết quả ĐẠT)
+   - Error: #F44336 (Đỏ — kết quả CHƯA ĐẠT)
+   - Background dark: #0D1B2A
+
+4. ANIMATION GUIDELINES:
+   - Counter-up: Đếm từ 0 lên số thực tế trong 1.5 giây
+   - Pop-in: Scale từ 0.8 lên 1.0 kèm fade-in (0.3 giây)
+   - Slide: Direction theo flow tự nhiên (trái→phải khi tiến, phải→trái khi lùi)
+   - Pulse: Nút quan trọng nhấp nháy nhẹ (scale 1.0 ↔ 1.05, 1 giây/chu kỳ)
+
+5. GIỌNG ĐỌC (VOICE-OVER):
+   - Ngôn ngữ: Tiếng Việt
+   - Accent: Giọng miền Nam (hoặc giọng chuẩn miền Bắc — tùy chọn)
+   - Giới tính đề nghị: Nữ (tone chuyên nghiệp, ấm áp, tự tin)
+   - Tốc độ đọc: 130-140 từ/phút (không quá nhanh)
+   - Pause: 0.5 giây giữa các câu, 1 giây khi chuyển ý lớn
+
+6. NHẠC NỀN:
+   - Thể loại: Corporate Technology / Cinematic Corporate
+   - BPM: 85-100
+   - Volume: -18dB (nền) khi voice-over chạy, tăng lên -12dB khi không có VO
+   - Fade in/out: 2 giây
+
+================================================================================
+END OF SCRIPT — SAIGONBANK SDTC VIDEO PRODUCTION GUIDE v1.0
+================================================================================

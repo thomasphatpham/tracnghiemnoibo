@@ -97,17 +97,17 @@ function LoginForm() {
       setIsLoading(false);
     }
   };
-
-  const fillQuickAccount = (userType: "admin" | "employee") => {
-    if (userType === "admin") {
-      setUsernameOrEmail("admin");
-      setPassword("Admin@123456");
-    } else {
-      setUsernameOrEmail("nhanvien1");
-      setPassword("User@123456");
-    }
-    setErrorMessage("");
-  };
+// tài khoản mật khẩu nhân viên
+  // const fillQuickAccount = (userType: "admin" | "employee") => {
+  //   if (userType === "admin") {
+  //     setUsernameOrEmail("admin");
+  //     setPassword("Admin@123456");
+  //   } else {
+  //     setUsernameOrEmail("nhanvien1");
+  //     setPassword("User@123456");
+  //   }
+  //   setErrorMessage("");
+  // };
 
   return (
     <>
@@ -271,7 +271,7 @@ function LoginForm() {
         </p>
       </div>
 
-      {/* Demo Quick Fill */}
+      {/* Demo Quick Fill
       <div className="pt-1" suppressHydrationWarning>
         <p className="text-[11px] text-slate-400 text-center mb-2">
           Điền nhanh tài khoản mẫu thử nghiệm:
@@ -294,7 +294,7 @@ function LoginForm() {
             👤 Nhân Viên (nhanvien1)
           </button>
         </div>
-      </div>
+      </div> */}
     </div>
     </>
   );

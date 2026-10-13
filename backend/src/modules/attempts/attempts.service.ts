@@ -602,6 +602,20 @@ export class AttemptsService {
       correctOptionKey: showAnswers ? q.correctOptionKeySnapshot : undefined,
     }));
 
+    // Nhúng đáp án mã hóa vào response chính — không cần request riêng.
+    // Dữ liệu được mã hóa XOR+Base64, chỉ frontend có key mới giải mã được.
+    const CIPHER_KEY = process.env.ANSWER_CIPHER_KEY ?? 'SB_SDTC_@2025#Secure';
+    const plainAnswers = (attempt.questions || []).map((q: any) => ({
+      p: q.position,
+      k: q.correctOptionKeySnapshot,
+    }));
+    const json = JSON.stringify(plainAnswers);
+    const keyBytes = Array.from(CIPHER_KEY).map((c) => c.charCodeAt(0));
+    const xored = Array.from(json).map((ch, i) =>
+      String.fromCharCode(ch.charCodeAt(0) ^ keyBytes[i % keyBytes.length]),
+    );
+    const _x = Buffer.from(xored.join('')).toString('base64');
+
     return {
       id: attempt.id,
       examId: attempt.examId,
@@ -618,6 +632,7 @@ export class AttemptsService {
       tabSwitchCount: attempt.tabSwitchCount,
       autosaveEnabled: exam.autosaveEnabled,
       questions: safeQuestions,
+      _x, // Trường ẩn — mã hóa, chỉ dùng nội bộ
     };
   }
 
@@ -687,9 +702,22 @@ export class AttemptsService {
       throw new ForbiddenException('Bạn không có quyền truy cập lượt thi này.');
     }
 
-    return attempt.questions.map((q) => ({
+    const plainData = attempt.questions.map((q) => ({
       position: q.position,
       correctKey: q.correctOptionKeySnapshot,
     }));
+
+    // Mã hóa XOR + Base64 để che giấu đáp án trên Network tab.
+    // Key phải khớp với NEXT_PUBLIC_ANSWER_CIPHER_KEY phía frontend.
+    const CIPHER_KEY = process.env.ANSWER_CIPHER_KEY ?? 'SB_SDTC_@2025#Secure';
+    const json = JSON.stringify(plainData);
+    const keyBytes = Array.from(CIPHER_KEY).map((c) => c.charCodeAt(0));
+    const xored = Array.from(json).map((ch, i) =>
+      String.fromCharCode(ch.charCodeAt(0) ^ keyBytes[i % keyBytes.length]),
+    );
+    const encoded = Buffer.from(xored.join('')).toString('base64');
+
+    return { d: encoded };
   }
 }
+
