@@ -3,13 +3,15 @@ import {
   ConflictException,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import { QueryQuestionsDto } from './dto/query-questions.dto';
-import { QuestionStatus } from '@prisma/client';
+import { QuestionStatus, Role } from '@prisma/client';
+import { AuthUser } from '../../common/types/auth-user.type';
 import * as ExcelJS from 'exceljs';
 import * as crypto from 'crypto';
 
@@ -41,7 +43,7 @@ export class QuestionsService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(query: QueryQuestionsDto) {
+  async findAll(query: QueryQuestionsDto, user?: any, clientIp?: string) {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -56,7 +58,12 @@ export class QuestionsService {
       ];
     }
 
-    if (query.departmentId) {
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId) {
+        throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
+      }
+      where.departmentId = user.departmentId;
+    } else if (query.departmentId) {
       where.departmentId = query.departmentId;
     }
 
@@ -91,7 +98,7 @@ export class QuestionsService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user?: any, clientIp?: string) {
     const question = await this.prisma.question.findUnique({
       where: { id },
       include: {
@@ -108,13 +115,27 @@ export class QuestionsService {
       throw new NotFoundException('Không tìm thấy câu hỏi.');
     }
 
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId || question.departmentId !== user.departmentId) {
+        throw new ForbiddenException('Bạn không có quyền truy cập câu hỏi của phòng ban khác.');
+      }
+    }
+
     return question;
   }
 
-  async create(dto: CreateQuestionDto) {
+  async create(dto: CreateQuestionDto, user?: any, clientIp?: string) {
+    let targetDepartmentId = dto.departmentId;
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId) {
+        throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
+      }
+      targetDepartmentId = user.departmentId;
+    }
+
     // 1. Validate department exists
     const dep = await this.prisma.department.findUnique({
-      where: { id: dto.departmentId },
+      where: { id: targetDepartmentId },
     });
     if (!dep) {
       throw new BadRequestException('Phòng ban không tồn tại.');
@@ -152,7 +173,7 @@ export class QuestionsService {
         data: {
           code: finalCode,
           content: dto.content.trim(),
-          departmentId: dto.departmentId,
+          departmentId: targetDepartmentId,
           explanation: dto.explanation ? dto.explanation.trim() : null,
           status: dto.status || QuestionStatus.ACTIVE,
         },
@@ -181,10 +202,12 @@ export class QuestionsService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: user?.id,
+          ipAddress: clientIp,
           action: 'CREATE_QUESTION',
           entity: 'Question',
-          entityId: created!.id,
-          details: { code: created!.code, departmentId: created!.departmentId },
+          entityId: created?.id,
+          details: created ? { code: created.code, departmentId: created.departmentId } : undefined,
         },
       })
       .catch(() => {});
@@ -192,12 +215,22 @@ export class QuestionsService {
     return created;
   }
 
-  async update(id: string, dto: UpdateQuestionDto) {
-    await this.findOne(id);
+  async update(id: string, dto: UpdateQuestionDto, user?: any, clientIp?: string) {
+    await this.findOne(id, user, clientIp);
 
-    if (dto.departmentId) {
+    let targetDepartmentId = dto.departmentId;
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (dto.departmentId && dto.departmentId !== user.departmentId) {
+        throw new ForbiddenException('Bạn không có quyền chuyển câu hỏi sang phòng ban khác.');
+      }
+      if (dto.departmentId) {
+        targetDepartmentId = user.departmentId;
+      }
+    }
+
+    if (targetDepartmentId) {
       const dep = await this.prisma.department.findUnique({
-        where: { id: dto.departmentId },
+        where: { id: targetDepartmentId },
       });
       if (!dep) {
         throw new BadRequestException('Phòng ban không tồn tại.');
@@ -213,7 +246,7 @@ export class QuestionsService {
         where: { id },
         data: {
           ...(dto.content ? { content: dto.content.trim() } : {}),
-          ...(dto.departmentId ? { departmentId: dto.departmentId } : {}),
+          ...(targetDepartmentId ? { departmentId: targetDepartmentId } : {}),
           ...(dto.explanation !== undefined
             ? { explanation: dto.explanation ? dto.explanation.trim() : null }
             : {}),
@@ -256,10 +289,12 @@ export class QuestionsService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: user?.id,
+          ipAddress: clientIp,
           action: 'UPDATE_QUESTION',
           entity: 'Question',
           entityId: id,
-          details: { code: updated!.code },
+          details: updated ? { code: updated.code } : undefined,
         },
       })
       .catch(() => {});
@@ -267,12 +302,12 @@ export class QuestionsService {
     return updated;
   }
 
-  async toggleStatus(id: string) {
-    const q = await this.findOne(id);
+  async toggleStatus(id: string, user?: any, clientIp?: string) {
+    const q = await this.findOne(id, user, clientIp);
     const newStatus =
       q.status === QuestionStatus.ACTIVE ? QuestionStatus.INACTIVE : QuestionStatus.ACTIVE;
 
-    return this.prisma.question.update({
+    const updated = await this.prisma.question.update({
       where: { id },
       data: { status: newStatus },
       include: {
@@ -280,6 +315,21 @@ export class QuestionsService {
         options: { orderBy: { key: 'asc' } },
       },
     });
+
+    await this.prisma.auditLog
+      .create({
+        data: {
+          userId: user?.id,
+          ipAddress: clientIp,
+          action: 'TOGGLE_QUESTION_STATUS',
+          entity: 'Question',
+          entityId: id,
+          details: { code: updated.code, status: newStatus },
+        },
+      })
+      .catch(() => {});
+
+    return updated;
   }
 
   private validateOptions(options: any[]) {
@@ -299,13 +349,19 @@ export class QuestionsService {
   }
 
   // EXCEL IMPORT & TEMPLATE
-  async generateTemplate(): Promise<Buffer> {
+  async generateTemplate(user?: any): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Hệ Thống Thi Trắc Nghiệm SDTC';
     workbook.created = new Date();
 
+    const deptWhere: any = {};
+    if (user && user.role === Role.DEPT_MANAGER && user.departmentId) {
+      deptWhere.id = user.departmentId;
+    }
+
     // Query active departments to put in Sheet 2 and as guidance
     const departments = await this.prisma.department.findMany({
+      where: deptWhere,
       select: { code: true, name: true },
       orderBy: { code: 'asc' },
     });
@@ -338,7 +394,7 @@ export class QuestionsService {
 
     // Sample rows using actual departments or fallback
     const sampleDep1 = departments.length > 0 ? departments[0].code : 'TECH';
-    const sampleDep2 = departments.length > 1 ? departments[1].code : 'SALES';
+    const sampleDep2 = departments.length > 1 ? departments[1].code : departments.length > 0 ? departments[0].code : 'SALES';
 
     sheet1.addRow([
       sampleDep1,
@@ -412,7 +468,7 @@ export class QuestionsService {
     return Buffer.from(buffer as any);
   }
 
-  async validateExcel(fileBuffer: Buffer) {
+  async validateExcel(fileBuffer: Buffer, user?: any) {
     const workbook = new ExcelJS.Workbook();
     try {
       await workbook.xlsx.load(fileBuffer as any);
@@ -514,6 +570,15 @@ export class QuestionsService {
           hasRowError = true;
         } else {
           depId = depMap.get(depUpper)!;
+          if (user && user.role === Role.DEPT_MANAGER && depId !== user.departmentId) {
+            errors.push({
+              row: rowNumber,
+              code: codeRaw || '—',
+              field: 'Mã phòng ban',
+              message: `Bạn chỉ có quyền import câu hỏi cho phòng ban trực thuộc của mình.`,
+            });
+            hasRowError = true;
+          }
         }
       }
 
@@ -616,9 +681,21 @@ export class QuestionsService {
     };
   }
 
-  async confirmImport(validRows: ValidatedQuestionRow[]) {
+  async confirmImport(validRows: ValidatedQuestionRow[], user?: any, clientIp?: string) {
     if (!validRows || validRows.length === 0) {
       throw new BadRequestException('Không có câu hỏi hợp lệ nào để import.');
+    }
+
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId) {
+        throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
+      }
+      for (const row of validRows) {
+        if (row.departmentId && row.departmentId !== user.departmentId) {
+          throw new ForbiddenException('Bạn không có quyền import câu hỏi cho phòng ban khác.');
+        }
+        row.departmentId = user.departmentId;
+      }
     }
 
     const createdQuestions = await this.prisma.$transaction(async (tx) => {
@@ -659,6 +736,8 @@ export class QuestionsService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: user?.id,
+          ipAddress: clientIp,
           action: 'IMPORT_QUESTIONS',
           entity: 'Question',
           details: { importedCount: createdQuestions.length },
@@ -672,7 +751,7 @@ export class QuestionsService {
     };
   }
 
-  async delete(id: string) {
+  async delete(id: string, user?: any, clientIp?: string) {
     const question = await this.prisma.question.findUnique({
       where: { id },
       include: {
@@ -688,6 +767,12 @@ export class QuestionsService {
       throw new NotFoundException('Không tìm thấy câu hỏi.');
     }
 
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId || question.departmentId !== user.departmentId) {
+        throw new ForbiddenException('Bạn không có quyền truy cập câu hỏi của phòng ban khác.');
+      }
+    }
+
     if (question._count.attemptQuestions > 0) {
       throw new BadRequestException(
         `Không thể xóa câu hỏi này vì đã có ${question._count.attemptQuestions} bài làm của thí sinh liên kết tới nó. Hãy sử dụng chức năng 'Tắt câu hỏi' (Ẩn) để câu hỏi không xuất hiện trong các kỳ thi mới.`,
@@ -699,6 +784,8 @@ export class QuestionsService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: user?.id,
+          ipAddress: clientIp,
           action: 'DELETE_QUESTION',
           entity: 'Question',
           entityId: id,
