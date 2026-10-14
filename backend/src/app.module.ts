@@ -11,6 +11,7 @@ import { AttemptsModule } from './modules/attempts/attempts.module';
 import { AccountRequestsModule } from './modules/account-requests/account-requests.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
     AccountRequestsModule,
     ReportsModule,
     AuditLogsModule,
+    PermissionsModule,
   ],
 })
 export class AppModule {}
