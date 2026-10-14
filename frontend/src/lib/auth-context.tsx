@@ -9,7 +9,7 @@ export interface User {
   email: string;
   fullName: string;
   position?: string | null;
-  role: 'ADMIN' | 'EMPLOYEE';
+  role: 'ADMIN' | 'DEPT_MANAGER' | 'EMPLOYEE';
   status: 'ACTIVE' | 'LOCKED' | 'REQUIRE_SETUP';
   departmentId?: string | null;
   department?: {
@@ -17,6 +17,7 @@ export interface User {
     code: string;
     name: string;
   } | null;
+  permissions?: string[];
 }
 
 interface AuthContextType {

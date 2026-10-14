@@ -81,6 +81,8 @@ function LoginForm() {
       let nextRoute = '/employee/dashboard';
       if (user.role === 'ADMIN') {
         nextRoute = '/admin/dashboard';
+      } else if (user.role === 'DEPT_MANAGER') {
+        nextRoute = '/manager/dashboard';
       } else if (user.status === 'REQUIRE_SETUP') {
         nextRoute = '/employee/profile/setup';
       }
