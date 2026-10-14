@@ -173,11 +173,13 @@ export default function ManagerExamsPage() {
       maxAttempts: Number(maxAttempts),
       tabDetectionEnabled,
       maxTabSwitches: tabDetectionEnabled ? Number(maxTabSwitches) : 0,
-      candidateScope: 'ALL',
-      departmentDistribution: [
+      candidateScope: 'DEPARTMENTS',
+      assignedDepartmentIds: [deptId],
+      departmentRules: [
         {
           departmentId: deptId,
           percentage: 100,
+          allocatedCount: Number(totalQuestions),
         },
       ],
     };
