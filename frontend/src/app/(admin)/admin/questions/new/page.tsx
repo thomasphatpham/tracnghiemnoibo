@@ -11,7 +11,28 @@ import {
   AlertCircle,
   Building2,
   CheckCircle2,
+  RefreshCw,
+  Sparkles,
 } from 'lucide-react';
+
+/**
+ * Sinh mã câu hỏi tự động theo định dạng: [MÃ PHÒNG BAN]-Q[6 KÝ TỰ HEX]
+ * Giống hệt thuật toán tự sinh mã trong tính năng Import Excel.
+ */
+function generateQuestionCode(depCode: string = 'Q'): string {
+  const bytes = new Uint8Array(3);
+  if (typeof window !== 'undefined' && window.crypto) {
+    window.crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < 3; i++) bytes[i] = Math.floor(Math.random() * 256);
+  }
+  const randHex = Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase();
+  const prefix = depCode ? depCode.trim().toUpperCase() : 'Q';
+  return `${prefix}-Q${randHex}`;
+}
 
 export default function CreateQuestionPage() {
   const router = useRouter();
@@ -33,15 +54,32 @@ export default function CreateQuestionPage() {
 
   useEffect(() => {
     api.get('/departments?onlyActive=true').then((res) => {
-      setDepartments(res.data || []);
-      if (res.data?.length > 0) setDepartmentId(res.data[0].id);
+      const deps = res.data || [];
+      setDepartments(deps);
+      if (deps.length > 0) {
+        setDepartmentId(deps[0].id);
+        // Tự động sinh mã câu hỏi ban đầu theo phòng ban đầu tiên
+        setCode(generateQuestionCode(deps[0].code));
+      }
     });
   }, []);
 
+  const handleDepartmentChange = (newDepId: string) => {
+    setDepartmentId(newDepId);
+    const dep = departments.find((d) => d.id === newDepId);
+    // Khi đổi phòng ban, tự động cập nhật mã mới theo tiền tố phòng ban đó
+    setCode(generateQuestionCode(dep?.code || 'Q'));
+  };
+
+  const handleRegenerateCode = () => {
+    const dep = departments.find((d) => d.id === departmentId);
+    setCode(generateQuestionCode(dep?.code || 'Q'));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code.trim() || !departmentId || !content.trim()) {
-      setErrorMessage('Vui lòng điền đầy đủ mã câu hỏi, phòng ban và nội dung.');
+    if (!departmentId || !content.trim()) {
+      setErrorMessage('Vui lòng điền đầy đủ phòng ban và nội dung câu hỏi.');
       return;
     }
     if (!optionA.trim() || !optionB.trim() || !optionC.trim() || !optionD.trim()) {
@@ -52,9 +90,12 @@ export default function CreateQuestionPage() {
     setIsLoading(true);
     setErrorMessage('');
 
+    const dep = departments.find((d) => d.id === departmentId);
+    const submitCode = code.trim().toUpperCase() || generateQuestionCode(dep?.code || 'Q');
+
     try {
       await api.post('/questions', {
-        code: code.trim().toUpperCase(),
+        code: submitCode,
         departmentId,
         content: content.trim(),
         explanation: explanation.trim() || undefined,
@@ -104,17 +145,36 @@ export default function CreateQuestionPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Mã Câu Hỏi <span className="text-rose-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>Mã Câu Hỏi</span>
+                  <span className="text-rose-500">*</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md normal-case">
+                    <Sparkles className="w-2.5 h-2.5" />
+                    Tự động tạo
+                  </span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleRegenerateCode}
+                  title="Tạo mã ngẫu nhiên mới"
+                  className="text-[11px] font-medium text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition cursor-pointer"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>Đổi mã</span>
+                </button>
+              </div>
               <input
                 type="text"
                 required
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="VD: TECH-105"
+                placeholder="VD: CNTT-QA1B2C3"
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
+              <p className="text-[11px] text-slate-400 mt-1">
+                Định dạng: <span className="font-mono font-semibold text-slate-600">[MÃ PB]-Q[HEX]</span> (chuẩn theo import Excel)
+              </p>
             </div>
 
             <div>
@@ -123,7 +183,7 @@ export default function CreateQuestionPage() {
               </label>
               <select
                 value={departmentId}
-                onChange={(e) => setDepartmentId(e.target.value)}
+                onChange={(e) => handleDepartmentChange(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
               >
                 {departments.map((d) => (

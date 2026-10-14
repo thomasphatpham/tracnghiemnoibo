@@ -112,20 +112,35 @@ export class QuestionsService {
   }
 
   async create(dto: CreateQuestionDto) {
-    // 1. Check code uniqueness
-    const existing = await this.prisma.question.findUnique({
-      where: { code: dto.code.trim().toUpperCase() },
-    });
-    if (existing) {
-      throw new ConflictException(`Mã câu hỏi '${dto.code}' đã tồn tại.`);
-    }
-
-    // 2. Validate department exists
+    // 1. Validate department exists
     const dep = await this.prisma.department.findUnique({
       where: { id: dto.departmentId },
     });
     if (!dep) {
       throw new BadRequestException('Phòng ban không tồn tại.');
+    }
+
+    // 2. Handle & Auto-generate question code if not provided
+    let finalCode = dto.code ? dto.code.trim().toUpperCase() : '';
+    if (!finalCode) {
+      const prefix = dep.code ? dep.code.trim().toUpperCase() : 'Q';
+      let attempt = 0;
+      do {
+        const randHex = crypto.randomBytes(3).toString('hex').toUpperCase();
+        finalCode = `${prefix}-Q${randHex}`;
+        const existing = await this.prisma.question.findUnique({
+          where: { code: finalCode },
+        });
+        if (!existing) break;
+        attempt++;
+      } while (attempt < 100);
+    } else {
+      const existing = await this.prisma.question.findUnique({
+        where: { code: finalCode },
+      });
+      if (existing) {
+        throw new ConflictException(`Mã câu hỏi '${dto.code}' đã tồn tại.`);
+      }
     }
 
     // 3. Validate options: exactly 4 options A, B, C, D and exactly ONE correct
@@ -135,7 +150,7 @@ export class QuestionsService {
     const created = await this.prisma.$transaction(async (tx) => {
       const question = await tx.question.create({
         data: {
-          code: dto.code.trim().toUpperCase(),
+          code: finalCode,
           content: dto.content.trim(),
           departmentId: dto.departmentId,
           explanation: dto.explanation ? dto.explanation.trim() : null,

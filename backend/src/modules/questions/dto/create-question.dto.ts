@@ -27,9 +27,9 @@ export class CreateOptionDto {
 }
 
 export class CreateQuestionDto {
-  @IsNotEmpty({ message: 'Mã câu hỏi không được để trống' })
+  @IsOptional()
   @IsString()
-  code: string;
+  code?: string;
 
   @IsNotEmpty({ message: 'Nội dung câu hỏi không được để trống' })
   @IsString()
