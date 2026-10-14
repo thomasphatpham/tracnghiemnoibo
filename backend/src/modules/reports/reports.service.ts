@@ -514,4 +514,359 @@ export class ReportsService {
     const buffer = await workbook.xlsx.writeBuffer();
     return Buffer.from(buffer as any);
   }
+
+  /**
+   * Báo cáo thống kê dành riêng cho Trưởng đơn vị / Phòng ban
+   */
+  async getMyDepartmentReport(
+    departmentId: string,
+    query: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      examId?: string;
+      isPassed?: boolean | string;
+    },
+  ) {
+    const department = await this.prisma.department.findUnique({
+      where: { id: departmentId },
+      select: { id: true, code: true, name: true },
+    });
+    if (!department) throw new NotFoundException('Phòng ban không tồn tại.');
+
+    const page = Math.max(1, Number(query?.page) || 1);
+    const limit = Math.max(1, Number(query?.limit) || 20);
+    const skip = (page - 1) * limit;
+
+    // Filter employees of this department
+    const userWhere: any = { departmentId };
+    if (query?.search?.trim()) {
+      const s = query.search.trim();
+      userWhere.OR = [
+        { fullName: { contains: s, mode: 'insensitive' } },
+        { username: { contains: s, mode: 'insensitive' } },
+        { email: { contains: s, mode: 'insensitive' } },
+      ];
+    }
+
+    const isPassedFilter =
+      typeof query?.isPassed === 'boolean'
+        ? query.isPassed
+        : query?.isPassed === 'true'
+        ? true
+        : query?.isPassed === 'false'
+        ? false
+        : undefined;
+
+    const [employees, totalEmployees, allAttempts] = await Promise.all([
+      this.prisma.user.findMany({
+        where: userWhere,
+        skip,
+        take: limit,
+        orderBy: { fullName: 'asc' },
+        select: {
+          id: true,
+          fullName: true,
+          username: true,
+          email: true,
+          position: true,
+          status: true,
+          attempts: {
+            where: {
+              status: {
+                in: [
+                  AttemptStatus.SUBMITTED,
+                  AttemptStatus.AUTO_SUBMITTED,
+                  AttemptStatus.EXPIRED,
+                ],
+              },
+              ...(query?.examId ? { examId: query.examId } : {}),
+              ...(isPassedFilter !== undefined ? { isPassed: isPassedFilter } : {}),
+            },
+            include: {
+              exam: { select: { id: true, name: true, totalQuestions: true } },
+            },
+            orderBy: { submittedAt: 'desc' },
+          },
+        },
+      }),
+      this.prisma.user.count({ where: userWhere }),
+      this.prisma.examAttempt.findMany({
+        where: {
+          user: { departmentId },
+          status: {
+            in: [
+              AttemptStatus.SUBMITTED,
+              AttemptStatus.AUTO_SUBMITTED,
+              AttemptStatus.EXPIRED,
+            ],
+          },
+          ...(query?.examId ? { examId: query.examId } : {}),
+        },
+        select: { score: true, isPassed: true },
+      }),
+    ]);
+
+    const totalCompleted = allAttempts.length;
+    const passedCount = allAttempts.filter((a) => a.isPassed).length;
+    const sumScore = allAttempts.reduce((acc, a) => acc + (a.score || 0), 0);
+    const avgScore =
+      totalCompleted > 0 ? Math.round((sumScore / totalCompleted) * 100) / 100 : 0;
+    const passRate =
+      totalCompleted > 0 ? Math.round((passedCount / totalCompleted) * 1000) / 10 : 0;
+
+    return {
+      department,
+      summary: {
+        totalEmployees,
+        totalAttempts: totalCompleted,
+        passedCount,
+        avgScore,
+        passRate,
+      },
+      employees,
+      meta: {
+        page,
+        limit,
+        total: totalEmployees,
+        totalPages: Math.ceil(totalEmployees / limit) || 1,
+      },
+    };
+  }
+
+  /**
+   * Xuất tệp Excel (.xlsx) báo cáo kết quả thi của đơn vị/phòng ban
+   */
+  async exportMyDepartmentReport(
+    departmentId: string,
+    query?: { search?: string; examId?: string; isPassed?: boolean | string },
+  ): Promise<Buffer> {
+    const department = await this.prisma.department.findUnique({
+      where: { id: departmentId },
+      select: { id: true, code: true, name: true },
+    });
+    if (!department) throw new NotFoundException('Phòng ban không tồn tại.');
+
+    const isPassedFilter =
+      typeof query?.isPassed === 'boolean'
+        ? query.isPassed
+        : query?.isPassed === 'true'
+        ? true
+        : query?.isPassed === 'false'
+        ? false
+        : undefined;
+
+    const userWhere: any = { departmentId };
+    if (query?.search?.trim()) {
+      const s = query.search.trim();
+      userWhere.OR = [
+        { fullName: { contains: s, mode: 'insensitive' } },
+        { username: { contains: s, mode: 'insensitive' } },
+        { email: { contains: s, mode: 'insensitive' } },
+      ];
+    }
+
+    const [totalEmployees, allAttempts, users] = await Promise.all([
+      this.prisma.user.count({ where: userWhere }),
+      this.prisma.examAttempt.findMany({
+        where: {
+          user: { departmentId },
+          status: {
+            in: [
+              AttemptStatus.SUBMITTED,
+              AttemptStatus.AUTO_SUBMITTED,
+              AttemptStatus.EXPIRED,
+            ],
+          },
+          ...(query?.examId ? { examId: query.examId } : {}),
+        },
+        select: { score: true, isPassed: true },
+      }),
+      this.prisma.user.findMany({
+        where: userWhere,
+        orderBy: { fullName: 'asc' },
+        select: {
+          id: true,
+          fullName: true,
+          username: true,
+          email: true,
+          position: true,
+          attempts: {
+            where: {
+              status: {
+                in: [
+                  AttemptStatus.SUBMITTED,
+                  AttemptStatus.AUTO_SUBMITTED,
+                  AttemptStatus.EXPIRED,
+                ],
+              },
+              ...(query?.examId ? { examId: query.examId } : {}),
+              ...(isPassedFilter !== undefined ? { isPassed: isPassedFilter } : {}),
+            },
+            include: {
+              exam: { select: { id: true, name: true, totalQuestions: true } },
+            },
+            orderBy: { submittedAt: 'desc' },
+          },
+        },
+      }),
+    ]);
+
+    const totalCompleted = allAttempts.length;
+    const passedCount = allAttempts.filter((a) => a.isPassed).length;
+    const sumScore = allAttempts.reduce((acc, a) => acc + (a.score || 0), 0);
+    const avgScore =
+      totalCompleted > 0 ? Math.round((sumScore / totalCompleted) * 100) / 100 : 0;
+    const passRate =
+      totalCompleted > 0 ? Math.round((passedCount / totalCompleted) * 1000) / 10 : 0;
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Hệ Thống Thi Trắc Nghiệm - Saigonbank';
+    workbook.created = new Date();
+
+    const sheet = workbook.addWorksheet('KetQuaPhongBan', {
+      views: [{ showGridLines: true }],
+    });
+
+    // 1. Tiêu đề chính
+    sheet.mergeCells('A1:J1');
+    const titleCell = sheet.getCell('A1');
+    titleCell.value = `BÁO CÁO KẾT QUẢ ĐÀO TẠO & THI TRẮC NGHIỆM - ${department.name.toUpperCase()}`;
+    titleCell.font = { bold: true, size: 14, color: { argb: 'FF0066B1' } };
+    titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+    sheet.getRow(1).height = 35;
+
+    // 2. Thông tin tóm tắt đơn vị
+    sheet.getCell('A3').value = 'Mã phòng ban:';
+    sheet.getCell('B3').value = department.code;
+    sheet.getCell('A4').value = 'Tên phòng ban:';
+    sheet.getCell('B4').value = department.name;
+    sheet.getCell('A5').value = 'Tổng số nhân viên:';
+    sheet.getCell('B5').value = totalEmployees;
+
+    sheet.getCell('D3').value = 'Tổng số lượt thi:';
+    sheet.getCell('E3').value = totalCompleted;
+    sheet.getCell('D4').value = 'Số lượt Đạt:';
+    sheet.getCell('E4').value = `${passedCount} (${passRate}%)`;
+    sheet.getCell('D5').value = 'Điểm trung bình:';
+    sheet.getCell('E5').value = avgScore;
+
+    ['A3', 'A4', 'A5', 'D3', 'D4', 'D5'].forEach((cell) => {
+      sheet.getCell(cell).font = { bold: true, color: { argb: 'FF475569' } };
+    });
+
+    // 3. Header bảng dữ liệu
+    const startRow = 7;
+    const headers = [
+      'STT',
+      'Tên đăng nhập',
+      'Họ và tên thí sinh',
+      'Chức danh',
+      'Kỳ thi',
+      'Điểm số (Thang 10)',
+      'Số câu đúng',
+      'Kết quả',
+      'Số lần rời tab',
+      'Thời gian nộp bài',
+    ];
+
+    const headerRow = sheet.getRow(startRow);
+    headerRow.values = headers;
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF0066B1' }, // Saigonbank Navy Blue
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 28;
+
+    // 4. Rows dữ liệu
+    let rowIndex = 1;
+    for (const u of users) {
+      if (!u.attempts || u.attempts.length === 0) {
+        const row = sheet.addRow([
+          rowIndex++,
+          u.username,
+          u.fullName,
+          u.position || '—',
+          '—',
+          '—',
+          '—',
+          'CHƯA THI',
+          0,
+          '—',
+        ]);
+
+        row.alignment = { vertical: 'middle' };
+        row.height = 22;
+        row.getCell(1).alignment = { vertical: 'middle', horizontal: 'center' };
+        row.getCell(6).alignment = { vertical: 'middle', horizontal: 'center' };
+        row.getCell(7).alignment = { vertical: 'middle', horizontal: 'center' };
+        row.getCell(8).alignment = { vertical: 'middle', horizontal: 'center' };
+        row.getCell(9).alignment = { vertical: 'middle', horizontal: 'center' };
+        row.getCell(10).alignment = { vertical: 'middle', horizontal: 'center' };
+        row.getCell(8).font = { bold: true, color: { argb: 'FF64748B' } }; // Slate 500
+      } else {
+        for (const att of u.attempts) {
+          const row = sheet.addRow([
+            rowIndex++,
+            u.username,
+            u.fullName,
+            u.position || '—',
+            att.exam?.name || '—',
+            att.score ?? 0,
+            att.correctCount !== null &&
+            att.correctCount !== undefined &&
+            att.exam?.totalQuestions
+              ? `${att.correctCount}/${att.exam.totalQuestions}`
+              : `${att.score ?? 0}`,
+            att.isPassed ? 'ĐẠT' : 'CHƯA ĐẠT',
+            att.tabSwitchCount ?? 0,
+            att.submittedAt
+              ? new Date(att.submittedAt).toLocaleString('vi-VN')
+              : '—',
+          ]);
+
+          row.alignment = { vertical: 'middle' };
+          row.height = 22;
+
+          row.getCell(1).alignment = { vertical: 'middle', horizontal: 'center' };
+          row.getCell(6).alignment = { vertical: 'middle', horizontal: 'center' };
+          row.getCell(7).alignment = { vertical: 'middle', horizontal: 'center' };
+          row.getCell(8).alignment = { vertical: 'middle', horizontal: 'center' };
+          row.getCell(9).alignment = { vertical: 'middle', horizontal: 'center' };
+          row.getCell(10).alignment = { vertical: 'middle', horizontal: 'center' };
+
+          if (att.isPassed) {
+            row.getCell(8).font = { bold: true, color: { argb: 'FF059669' } }; // Green 600
+          } else {
+            row.getCell(8).font = { bold: true, color: { argb: 'FFE11D48' } }; // Rose 600
+          }
+
+          if (att.tabSwitchCount > 0) {
+            row.getCell(9).font = { bold: true, color: { argb: 'FFE11D48' } };
+          }
+        }
+      }
+    }
+
+    // 5. Căn chỉnh độ rộng cột
+    sheet.columns = [
+      { width: 8 },  // STT
+      { width: 18 }, // Tên đăng nhập
+      { width: 28 }, // Họ và tên thí sinh
+      { width: 22 }, // Chức danh
+      { width: 34 }, // Kỳ thi
+      { width: 16 }, // Điểm số
+      { width: 16 }, // Số câu đúng
+      { width: 16 }, // Kết quả
+      { width: 16 }, // Rời tab
+      { width: 24 }, // Thời gian nộp bài
+    ];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer as any);
+  }
 }
+
