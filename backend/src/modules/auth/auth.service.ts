@@ -16,7 +16,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { UserStatus } from '@prisma/client';
+import { Role, UserStatus } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -157,6 +157,15 @@ export class AuthService {
       })
       .catch((e) => this.logger.warn(`Failed to log LOGIN: ${e.message}`));
 
+    let permissions: string[] = [];
+    if (user.role === Role.DEPT_MANAGER) {
+      const rolePerms = await this.prisma.rolePermission.findMany({
+        where: { role: Role.DEPT_MANAGER },
+        include: { permission: true },
+      });
+      permissions = rolePerms.map((rp) => `${rp.permission.resource}:${rp.permission.action}`);
+    }
+
     return {
       message: 'Đăng nhập thành công',
       accessToken,
@@ -170,6 +179,7 @@ export class AuthService {
         status: user.status,
         departmentId: user.departmentId,
         department: user.department,
+        permissions,
       },
     };
   }

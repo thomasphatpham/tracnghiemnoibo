@@ -19,7 +19,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { PrismaService } from '../../prisma/prisma.service';
-import { UserStatus } from '@prisma/client';
+import { Role, UserStatus } from '@prisma/client';
 
 @Controller('auth')
 export class AuthController {
@@ -94,7 +94,24 @@ export class MeController {
         createdAt: true,
       },
     });
-    return { user };
+
+    let permissions: string[] = [];
+    if (user && user.role === Role.DEPT_MANAGER) {
+      const rolePerms = await this.prisma.rolePermission.findMany({
+        where: { role: Role.DEPT_MANAGER },
+        include: { permission: true },
+      });
+      permissions = rolePerms.map((rp) => `${rp.permission.resource}:${rp.permission.action}`);
+    }
+
+    return {
+      user: user
+        ? {
+            ...user,
+            permissions,
+          }
+        : null,
+    };
   }
 
   @Patch()

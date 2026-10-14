@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { UserStatus } from '@prisma/client';
+import { Role, UserStatus } from '@prisma/client';
 
 export interface JwtPayload {
   sub: string;
@@ -63,6 +63,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       }
     }
 
+    let permissions: string[] = [];
+    if (user.role === Role.DEPT_MANAGER) {
+      const rolePerms = await this.prisma.rolePermission.findMany({
+        where: { role: Role.DEPT_MANAGER },
+        include: { permission: true },
+      });
+      permissions = rolePerms.map((rp) => `${rp.permission.resource}:${rp.permission.action}`);
+    }
+
     return {
       id: user.id,
       username: user.username,
@@ -73,6 +82,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       status: user.status,
       departmentId: user.departmentId,
       department: user.department,
+      permissions,
       sessionId,
     };
   }
