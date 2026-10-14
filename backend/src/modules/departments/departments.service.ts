@@ -92,7 +92,7 @@ export class DepartmentsService {
     return department;
   }
 
-  async create(dto: CreateDepartmentDto) {
+  async create(dto: CreateDepartmentDto, auditContext?: { userId?: string; clientIp?: string }) {
     const existing = await this.prisma.department.findUnique({
       where: { code: dto.code.trim().toUpperCase() },
     });
@@ -111,9 +111,11 @@ export class DepartmentsService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: auditContext?.userId || null,
           action: 'CREATE_DEPARTMENT',
           entity: 'Department',
           entityId: created.id,
+          ipAddress: auditContext?.clientIp || null,
           details: { code: created.code, name: created.name },
         },
       })
@@ -122,7 +124,7 @@ export class DepartmentsService {
     return created;
   }
 
-  async update(id: string, dto: UpdateDepartmentDto) {
+  async update(id: string, dto: UpdateDepartmentDto, auditContext?: { userId?: string; clientIp?: string }) {
     const existing = await this.findOne(id);
 
     let normalizedCode: string | undefined;
@@ -150,9 +152,11 @@ export class DepartmentsService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: auditContext?.userId || null,
           action: 'UPDATE_DEPARTMENT',
           entity: 'Department',
           entityId: id,
+          ipAddress: auditContext?.clientIp || null,
           details: { code: updated.code, name: updated.name, status: updated.status },
         },
       })
@@ -161,20 +165,35 @@ export class DepartmentsService {
     return updated;
   }
 
-  async toggleStatus(id: string) {
+  async toggleStatus(id: string, auditContext?: { userId?: string; clientIp?: string }) {
     const dep = await this.findOne(id);
     const newStatus =
       dep.status === DepartmentStatus.ACTIVE
         ? DepartmentStatus.INACTIVE
         : DepartmentStatus.ACTIVE;
 
-    return this.prisma.department.update({
+    const updated = await this.prisma.department.update({
       where: { id },
       data: { status: newStatus },
     });
+
+    await this.prisma.auditLog
+      .create({
+        data: {
+          userId: auditContext?.userId || null,
+          action: 'UPDATE_DEPARTMENT',
+          entity: 'Department',
+          entityId: id,
+          ipAddress: auditContext?.clientIp || null,
+          details: { code: dep.code, name: dep.name, status: newStatus, action: 'TOGGLE_STATUS' },
+        },
+      })
+      .catch(() => {});
+
+    return updated;
   }
 
-  async delete(id: string) {
+  async delete(id: string, auditContext?: { userId?: string; clientIp?: string }) {
     const department = await this.prisma.department.findUnique({
       where: { id },
       include: {
@@ -221,9 +240,11 @@ export class DepartmentsService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: auditContext?.userId || null,
           action: 'DELETE_DEPARTMENT',
           entity: 'Department',
           entityId: id,
+          ipAddress: auditContext?.clientIp || null,
           details: { code: department.code, name: department.name },
         },
       })
@@ -381,7 +402,10 @@ export class DepartmentsService {
     };
   }
 
-  async confirmImport(validRows: { code: string; name: string; status: DepartmentStatus }[]) {
+  async confirmImport(
+    validRows: { code: string; name: string; status: DepartmentStatus }[],
+    auditContext?: { userId?: string; clientIp?: string },
+  ) {
     if (!validRows || validRows.length === 0) {
       throw new BadRequestException('Không có phòng ban hợp lệ nào để import.');
     }
@@ -404,8 +428,10 @@ export class DepartmentsService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: auditContext?.userId || null,
           action: 'IMPORT_DEPARTMENTS',
           entity: 'Department',
+          ipAddress: auditContext?.clientIp || null,
           details: { importedCount: created.length },
         },
       })

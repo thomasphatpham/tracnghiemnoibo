@@ -6,12 +6,15 @@ import {
   Param,
   Body,
   UseGuards,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { AttemptsService } from './attempts.service';
 import { SaveAnswerDto } from './dto/save-answer.dto';
 import { TabSwitchDto } from './dto/tab-switch.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { getRealClientIp } from '../../common/utils/ip.util';
 
 @Controller('attempts')
 @UseGuards(JwtAuthGuard)
@@ -33,8 +36,10 @@ export class AttemptsController {
     @Param('id') id: string,
     @Body() dto: SaveAnswerDto,
     @CurrentUser('id') userId: string,
+    @Req() req: Request,
   ) {
-    return this.attemptsService.saveAnswer(id, dto, userId);
+    const clientIp = getRealClientIp(req);
+    return this.attemptsService.saveAnswer(id, dto, userId, clientIp);
   }
 
   @Patch(':id/tab-switch')
@@ -42,16 +47,20 @@ export class AttemptsController {
     @Param('id') id: string,
     @Body() dto: TabSwitchDto,
     @CurrentUser('id') userId: string,
+    @Req() req: Request,
   ) {
-    return this.attemptsService.recordTabSwitch(id, dto, userId);
+    const clientIp = getRealClientIp(req);
+    return this.attemptsService.recordTabSwitch(id, dto, userId, clientIp);
   }
 
   @Post(':id/submit')
   async submit(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
+    @Req() req: Request,
   ) {
-    return this.attemptsService.submitAttempt(id, userId);
+    const clientIp = getRealClientIp(req);
+    return this.attemptsService.submitAttempt(id, userId, clientIp);
   }
 
   @Get(':id/result')

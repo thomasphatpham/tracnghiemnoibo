@@ -11,10 +11,11 @@ import {
   UseInterceptors,
   UploadedFile,
   Res,
+  Req,
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -23,6 +24,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { getRealClientIp } from '../../common/utils/ip.util';
 import { Role } from '@prisma/client';
 
 @Controller('users')
@@ -60,8 +62,13 @@ export class UsersController {
   }
 
   @Post('import/confirm')
-  async confirmImport(@Body('validRows') validRows: any[]) {
-    return this.usersService.confirmImport(validRows);
+  async confirmImport(
+    @Body('validRows') validRows: any[],
+    @CurrentUser('id') userId: string,
+    @Req() req: Request,
+  ) {
+    const clientIp = getRealClientIp(req);
+    return this.usersService.confirmImport(validRows, { userId, clientIp });
   }
 
   @Get(':id')
@@ -70,22 +77,43 @@ export class UsersController {
   }
 
   @Post()
-  async create(@Body() dto: CreateUserDto) {
-    return this.usersService.create(dto);
+  async create(
+    @Body() dto: CreateUserDto,
+    @CurrentUser('id') userId: string,
+    @Req() req: Request,
+  ) {
+    const clientIp = getRealClientIp(req);
+    return this.usersService.create(dto, { userId, clientIp });
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(id, dto);
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDto,
+    @CurrentUser('id') userId: string,
+    @Req() req: Request,
+  ) {
+    const clientIp = getRealClientIp(req);
+    return this.usersService.update(id, dto, { userId, clientIp });
   }
 
   @Patch(':id/lock')
-  async toggleLock(@Param('id') id: string) {
-    return this.usersService.toggleLock(id);
+  async toggleLock(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+    @Req() req: Request,
+  ) {
+    const clientIp = getRealClientIp(req);
+    return this.usersService.toggleLock(id, { userId, clientIp });
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string, @CurrentUser('id') currentUserId: string) {
-    return this.usersService.delete(id, currentUserId);
+  async delete(
+    @Param('id') id: string,
+    @CurrentUser('id') currentUserId: string,
+    @Req() req: Request,
+  ) {
+    const clientIp = getRealClientIp(req);
+    return this.usersService.delete(id, currentUserId, { userId: currentUserId, clientIp });
   }
 }

@@ -11,16 +11,19 @@ import {
   UseInterceptors,
   UploadedFile,
   Res,
+  Req,
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { DepartmentsService } from './departments.service';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { getRealClientIp } from '../../common/utils/ip.util';
 import { Role } from '@prisma/client';
 
 @Controller('departments')
@@ -70,8 +73,13 @@ export class DepartmentsController {
 
   @Post('import/confirm')
   @Roles(Role.ADMIN)
-  async confirmImport(@Body('validRows') validRows: any[]) {
-    return this.departmentsService.confirmImport(validRows);
+  async confirmImport(
+    @Body('validRows') validRows: any[],
+    @CurrentUser('id') userId: string,
+    @Req() req: Request,
+  ) {
+    const clientIp = getRealClientIp(req);
+    return this.departmentsService.confirmImport(validRows, { userId, clientIp });
   }
 
   @Get(':id')
@@ -82,25 +90,46 @@ export class DepartmentsController {
 
   @Post()
   @Roles(Role.ADMIN)
-  async create(@Body() dto: CreateDepartmentDto) {
-    return this.departmentsService.create(dto);
+  async create(
+    @Body() dto: CreateDepartmentDto,
+    @CurrentUser('id') userId: string,
+    @Req() req: Request,
+  ) {
+    const clientIp = getRealClientIp(req);
+    return this.departmentsService.create(dto, { userId, clientIp });
   }
 
   @Patch(':id')
   @Roles(Role.ADMIN)
-  async update(@Param('id') id: string, @Body() dto: UpdateDepartmentDto) {
-    return this.departmentsService.update(id, dto);
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateDepartmentDto,
+    @CurrentUser('id') userId: string,
+    @Req() req: Request,
+  ) {
+    const clientIp = getRealClientIp(req);
+    return this.departmentsService.update(id, dto, { userId, clientIp });
   }
 
   @Patch(':id/toggle-status')
   @Roles(Role.ADMIN)
-  async toggleStatus(@Param('id') id: string) {
-    return this.departmentsService.toggleStatus(id);
+  async toggleStatus(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+    @Req() req: Request,
+  ) {
+    const clientIp = getRealClientIp(req);
+    return this.departmentsService.toggleStatus(id, { userId, clientIp });
   }
 
   @Delete(':id')
   @Roles(Role.ADMIN)
-  async delete(@Param('id') id: string) {
-    return this.departmentsService.delete(id);
+  async delete(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+    @Req() req: Request,
+  ) {
+    const clientIp = getRealClientIp(req);
+    return this.departmentsService.delete(id, { userId, clientIp });
   }
 }

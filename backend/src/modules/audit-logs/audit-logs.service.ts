@@ -146,8 +146,12 @@ export class AuditLogsService {
               'CREATE_USER',
               'UPDATE_USER',
               'IMPORT_USERS',
+              'LOCK_USER',
+              'UNLOCK_USER',
+              'DELETE_USER',
               'CREATE_DEPARTMENT',
               'UPDATE_DEPARTMENT',
+              'DELETE_DEPARTMENT',
               'IMPORT_DEPARTMENTS',
               'CREATE_QUESTION',
               'UPDATE_QUESTION',
@@ -161,7 +165,7 @@ export class AuditLogsService {
         where: {
           createdAt: { gte: startOfToday },
           action: {
-            in: ['START_EXAM', 'SUBMIT_EXAM', 'TAB_SWITCH_VIOLATION'],
+            in: ['START_EXAM', 'SUBMIT_EXAM', 'AUTO_SUBMIT_EXAM', 'SYSTEM_AUTO_SUBMIT', 'TAB_SWITCH_VIOLATION'],
           },
         },
       }),

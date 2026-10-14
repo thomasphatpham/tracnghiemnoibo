@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   FileText,
+  Bot,
 } from 'lucide-react';
 
 interface AuditLogItem {
@@ -95,6 +96,10 @@ const ACTION_CONFIG: Record<
   AUTO_SUBMIT_EXAM: {
     label: 'Tự động nộp bài',
     badgeClass: 'bg-orange-50 text-orange-700 border-orange-200',
+  },
+  SYSTEM_AUTO_SUBMIT: {
+    label: 'Hệ thống tự động nộp bài',
+    badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   },
   TAB_SWITCH_VIOLATION: {
     label: 'Vi phạm chuyển tab',
@@ -394,6 +399,7 @@ export default function ActivityLogsPage() {
                 <option value="START_EXAM">Bắt đầu làm bài thi</option>
                 <option value="SUBMIT_EXAM">Nộp bài thi</option>
                 <option value="AUTO_SUBMIT_EXAM">Tự động thu bài</option>
+                <option value="SYSTEM_AUTO_SUBMIT">Hệ thống tự động nộp bài</option>
                 <option value="TAB_SWITCH_VIOLATION">Cảnh báo vi phạm chuyển tab</option>
               </optgroup>
               <optgroup label="Quản lý Kỳ thi">
@@ -522,7 +528,7 @@ export default function ActivityLogsPage() {
 
                       {/* User */}
                       <td className="py-3.5 px-4">
-                        {item.user ? (
+                        {item.userId && item.user ? (
                           <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-full bg-blue-50 text-[#0066B1] border border-blue-100 flex items-center justify-center font-bold text-xs uppercase shrink-0">
                               {item.user.fullName?.charAt(0) || 'U'}
@@ -546,8 +552,16 @@ export default function ActivityLogsPage() {
                               </div>
                             </div>
                           </div>
+                        ) : item.userId === null && item.ipAddress === 'SYSTEM' ? (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            <Bot className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                            <span>Hệ thống (Tự động)</span>
+                          </div>
                         ) : (
-                          <span className="text-slate-400 italic">Hệ thống / Vô danh</span>
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50/80 text-amber-800 border border-amber-200">
+                            <User className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>Vô danh / Khách</span>
+                          </div>
                         )}
                       </td>
 
@@ -585,9 +599,15 @@ export default function ActivityLogsPage() {
 
                       {/* IP */}
                       <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1">
-                          <Globe className="w-3 h-3 text-slate-400" />
-                          {item.ipAddress || '127.0.0.1'}
+                        <span className="inline-flex items-center gap-1.5">
+                          <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          {item.ipAddress === 'SYSTEM' ? (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider bg-indigo-100 text-indigo-700 uppercase font-sans">
+                              HỆ THỐNG
+                            </span>
+                          ) : (
+                            <span>{item.ipAddress || '127.0.0.1'}</span>
+                          )}
                         </span>
                       </td>
 
@@ -665,19 +685,25 @@ export default function ActivityLogsPage() {
                 <div>
                   <span className="text-slate-400 font-medium">Người thực hiện:</span>
                   <p className="font-semibold text-slate-800 mt-0.5">
-                    {selectedLog.user ? (
+                    {selectedLog.userId && selectedLog.user ? (
                       <>
                         {selectedLog.user.fullName} (@{selectedLog.user.username})
                       </>
+                    ) : selectedLog.userId === null && selectedLog.ipAddress === 'SYSTEM' ? (
+                      <span className="text-indigo-700 font-semibold">Hệ thống (Tự động)</span>
                     ) : (
-                      'Hệ thống'
+                      <span className="text-amber-700 font-semibold">Vô danh / Khách</span>
                     )}
                   </p>
                 </div>
                 <div>
                   <span className="text-slate-400 font-medium">Địa chỉ IP:</span>
                   <p className="font-semibold text-slate-800 mt-0.5 font-mono">
-                    {selectedLog.ipAddress || '127.0.0.1'}
+                    {selectedLog.ipAddress === 'SYSTEM' ? (
+                      <span className="text-indigo-700 font-semibold">SYSTEM (Hệ thống)</span>
+                    ) : (
+                      selectedLog.ipAddress || '127.0.0.1'
+                    )}
                   </p>
                 </div>
                 <div>

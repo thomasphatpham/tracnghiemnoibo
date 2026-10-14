@@ -26,7 +26,7 @@ export class AttemptsService {
   /**
    * Bắt đầu một lượt thi mới hoặc tiếp tục lượt thi đang diễn ra (Resume)
    */
-  async startExam(examId: string, userId: string) {
+  async startExam(examId: string, userId: string, clientIp?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -102,7 +102,10 @@ export class AttemptsService {
         return this.formatSanitizedAttempt(ongoingAttempt, exam);
       } else {
         // Đã hết giờ -> Tự động nộp bài lượt thi cũ này
-        await this.gradeAndFinalizeAttempt(ongoingAttempt.id, AttemptStatus.EXPIRED);
+        await this.gradeAndFinalizeAttempt(ongoingAttempt.id, AttemptStatus.EXPIRED, {
+          isSystem: true,
+          reason: 'Đã hết giờ làm bài',
+        });
       }
     }
 
@@ -230,6 +233,7 @@ export class AttemptsService {
           action: 'START_EXAM',
           entity: 'Exam',
           entityId: examId,
+          ipAddress: clientIp || null,
           details: {
             examName: exam.name,
             attemptId: newAttempt!.id,
@@ -266,7 +270,10 @@ export class AttemptsService {
 
     // Nếu bài thi đang làm nhưng đã quá hạn expiresAt, tự động nộp bài
     if (attempt.status === AttemptStatus.IN_PROGRESS && new Date() > attempt.expiresAt) {
-      const finalized = await this.gradeAndFinalizeAttempt(attempt.id, AttemptStatus.EXPIRED);
+      const finalized = await this.gradeAndFinalizeAttempt(attempt.id, AttemptStatus.EXPIRED, {
+        isSystem: true,
+        reason: 'Đã hết giờ làm bài',
+      });
       return this.formatSanitizedAttempt(finalized, attempt.exam);
     }
 
@@ -276,7 +283,7 @@ export class AttemptsService {
   /**
    * Tự động lưu đáp án đã chọn (Autosave Debounced)
    */
-  async saveAnswer(attemptId: string, dto: SaveAnswerDto, userId: string) {
+  async saveAnswer(attemptId: string, dto: SaveAnswerDto, userId: string, clientIp?: string) {
     const attempt = await this.prisma.examAttempt.findUnique({
       where: { id: attemptId },
     });
@@ -294,7 +301,10 @@ export class AttemptsService {
     }
 
     if (new Date() > attempt.expiresAt) {
-      await this.gradeAndFinalizeAttempt(attempt.id, AttemptStatus.EXPIRED);
+      await this.gradeAndFinalizeAttempt(attempt.id, AttemptStatus.EXPIRED, {
+        isSystem: true,
+        reason: 'Đã hết giờ làm bài',
+      });
       throw new BadRequestException('Thời gian làm bài đã kết thúc. Bài thi đã được hệ thống tự động thu nộp.');
     }
 
@@ -335,7 +345,7 @@ export class AttemptsService {
   /**
    * Ghi nhận vi phạm chuyển tab / rời màn hình thi
    */
-  async recordTabSwitch(attemptId: string, dto: TabSwitchDto, userId: string) {
+  async recordTabSwitch(attemptId: string, dto: TabSwitchDto, userId: string, clientIp?: string) {
     const attempt = await this.prisma.examAttempt.findUnique({
       where: { id: attemptId },
       include: { exam: true },
@@ -378,6 +388,12 @@ export class AttemptsService {
         newCount > attempt.exam.maxTabSwitches);
 
     if (isViolated) {
+      const violationReason =
+        dto.reason ||
+        (attempt.exam.maxTabSwitches === 0
+          ? 'Kỳ thi cấm tuyệt đối chuyển tab hoặc rời màn hình làm bài'
+          : `Chuyển tab ${newCount}/${attempt.exam.maxTabSwitches} lần, vượt quá giới hạn cho phép`);
+
       // Audit Log: TAB_SWITCH_VIOLATION
       await this.prisma.auditLog
         .create({
@@ -386,6 +402,7 @@ export class AttemptsService {
             action: 'TAB_SWITCH_VIOLATION',
             entity: 'ExamAttempt',
             entityId: attemptId,
+            ipAddress: clientIp || null,
             details: {
               examId: attempt.examId,
               tabSwitchCount: newCount,
@@ -396,7 +413,10 @@ export class AttemptsService {
         })
         .catch((e) => this.logger.warn(`Failed to log TAB_SWITCH_VIOLATION: ${e.message}`));
 
-      await this.gradeAndFinalizeAttempt(attemptId, AttemptStatus.AUTO_SUBMITTED);
+      await this.gradeAndFinalizeAttempt(attemptId, AttemptStatus.AUTO_SUBMITTED, {
+        isSystem: true,
+        reason: violationReason,
+      });
       return {
         autoSubmitted: true,
         tabSwitchCount: newCount,
@@ -419,7 +439,7 @@ export class AttemptsService {
   /**
    * Nộp bài thi (chủ động hoặc do hết giờ)
    */
-  async submitAttempt(attemptId: string, userId: string) {
+  async submitAttempt(attemptId: string, userId: string, clientIp?: string) {
     const attempt = await this.prisma.examAttempt.findUnique({
       where: { id: attemptId },
       include: { exam: true },
@@ -438,7 +458,11 @@ export class AttemptsService {
       return this.getResult(attemptId, userId);
     }
 
-    const finalized = await this.gradeAndFinalizeAttempt(attemptId, AttemptStatus.SUBMITTED);
+    const finalized = await this.gradeAndFinalizeAttempt(attemptId, AttemptStatus.SUBMITTED, {
+      isSystem: false,
+      userId,
+      clientIp,
+    });
     return this.getResult(finalized.id, userId);
   }
 
@@ -469,7 +493,10 @@ export class AttemptsService {
 
     if (attempt.status === AttemptStatus.IN_PROGRESS) {
       if (new Date() > attempt.expiresAt) {
-        await this.gradeAndFinalizeAttempt(attempt.id, AttemptStatus.EXPIRED);
+        await this.gradeAndFinalizeAttempt(attempt.id, AttemptStatus.EXPIRED, {
+          isSystem: true,
+          reason: 'Đã hết giờ làm bài',
+        });
       } else {
         throw new BadRequestException('Bài thi đang diễn ra, chưa có kết quả.');
       }
@@ -516,7 +543,16 @@ export class AttemptsService {
   /**
    * Hàm nội bộ: Chấm điểm bài thi và lưu trạng thái hoàn thành
    */
-  private async gradeAndFinalizeAttempt(attemptId: string, status: AttemptStatus) {
+  private async gradeAndFinalizeAttempt(
+    attemptId: string,
+    status: AttemptStatus,
+    options?: {
+      isSystem?: boolean;
+      userId?: string;
+      clientIp?: string;
+      reason?: string;
+    },
+  ) {
     const attempt = await this.prisma.examAttempt.findUnique({
       where: { id: attemptId },
       include: {
@@ -562,26 +598,60 @@ export class AttemptsService {
       },
     });
 
-    // Audit Log: SUBMIT_EXAM
-    await this.prisma.auditLog
-      .create({
-        data: {
-          userId: attempt.userId,
-          action: status === AttemptStatus.AUTO_SUBMITTED ? 'AUTO_SUBMIT_EXAM' : 'SUBMIT_EXAM',
-          entity: 'Exam',
-          entityId: attempt.examId,
-          details: {
-            examName: attempt.exam.name,
-            attemptId,
-            score,
-            correctCount,
-            totalQuestions,
-            isPassed,
-            status,
+    const isSystem =
+      options?.isSystem ??
+      (status === AttemptStatus.AUTO_SUBMITTED || status === AttemptStatus.EXPIRED);
+
+    if (isSystem) {
+      const reason =
+        options?.reason ||
+        (status === AttemptStatus.EXPIRED ? 'Đã hết giờ làm bài' : 'Hệ thống tự động nộp bài');
+
+      await this.prisma.auditLog
+        .create({
+          data: {
+            userId: null,
+            action: 'SYSTEM_AUTO_SUBMIT',
+            entity: 'Exam',
+            entityId: attempt.examId,
+            ipAddress: 'SYSTEM',
+            details: {
+              reason,
+              examName: attempt.exam.name,
+              attemptId,
+              candidateUserId: attempt.userId,
+              score,
+              correctCount,
+              totalQuestions,
+              isPassed,
+              status,
+            },
           },
-        },
-      })
-      .catch((e) => this.logger.warn(`Failed to log SUBMIT_EXAM: ${e.message}`));
+        })
+        .catch((e) => this.logger.warn(`Failed to log SYSTEM_AUTO_SUBMIT: ${e.message}`));
+    } else {
+      // Audit Log: SUBMIT_EXAM
+      await this.prisma.auditLog
+        .create({
+          data: {
+            userId: options?.userId || attempt.userId,
+            action: 'SUBMIT_EXAM',
+            entity: 'Exam',
+            entityId: attempt.examId,
+            ipAddress: options?.clientIp || null,
+            details: {
+              examName: attempt.exam.name,
+              attemptId,
+              score,
+              correctCount,
+              totalQuestions,
+              isPassed,
+              status,
+            },
+          },
+        })
+        .catch((e) => this.logger.warn(`Failed to log SUBMIT_EXAM: ${e.message}`));
+    }
 
     return updated;
   }

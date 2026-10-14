@@ -21,6 +21,8 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
+import { getRealClientIp } from '../../common/utils/ip.util';
+
 @Controller('exams')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class ExamsController {
@@ -30,11 +32,7 @@ export class ExamsController {
   ) {}
 
   private extractClientIp(req: Request): string {
-    return (
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ||
-      req.ip ||
-      '127.0.0.1'
-    );
+    return getRealClientIp(req);
   }
 
   @Get()
@@ -78,8 +76,10 @@ export class ExamsController {
   async start(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
+    @Req() req: Request,
   ) {
-    return this.attemptsService.startExam(id, userId);
+    const clientIp = this.extractClientIp(req);
+    return this.attemptsService.startExam(id, userId, clientIp);
   }
 
   @Post()

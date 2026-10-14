@@ -118,7 +118,7 @@ export class UsersService {
     return user;
   }
 
-  async create(dto: CreateUserDto) {
+  async create(dto: CreateUserDto, auditContext?: { userId?: string; clientIp?: string }) {
     const existingUsername = await this.prisma.user.findUnique({
       where: { username: dto.username.trim() },
     });
@@ -172,9 +172,11 @@ export class UsersService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: auditContext?.userId || null,
           action: 'CREATE_USER',
           entity: 'User',
           entityId: user.id,
+          ipAddress: auditContext?.clientIp || null,
           details: { username: user.username, fullName: user.fullName, role: user.role },
         },
       })
@@ -187,7 +189,7 @@ export class UsersService {
     };
   }
 
-  async update(id: string, dto: UpdateUserDto) {
+  async update(id: string, dto: UpdateUserDto, auditContext?: { userId?: string; clientIp?: string }) {
     await this.findOne(id);
 
     const dataToUpdate: any = {};
@@ -250,9 +252,11 @@ export class UsersService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: auditContext?.userId || null,
           action: 'UPDATE_USER',
           entity: 'User',
           entityId: id,
+          ipAddress: auditContext?.clientIp || null,
           details: { username: updated.username, updatedFields: Object.keys(dataToUpdate) },
         },
       })
@@ -261,7 +265,7 @@ export class UsersService {
     return { message: 'Cập nhật tài khoản thành công.', user: updated };
   }
 
-  async toggleLock(id: string) {
+  async toggleLock(id: string, auditContext?: { userId?: string; clientIp?: string }) {
     const user = await this.findOne(id);
 
     if (user.role === 'ADMIN') {
@@ -296,9 +300,11 @@ export class UsersService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: auditContext?.userId || null,
           action: newStatus === UserStatus.LOCKED ? 'LOCK_USER' : 'UNLOCK_USER',
           entity: 'User',
           entityId: id,
+          ipAddress: auditContext?.clientIp || null,
           details: { username: user.username, status: newStatus },
         },
       })
@@ -311,7 +317,7 @@ export class UsersService {
     };
   }
 
-  async delete(id: string, currentUserId?: string) {
+  async delete(id: string, currentUserId?: string, auditContext?: { userId?: string; clientIp?: string }) {
     if (currentUserId && id === currentUserId) {
       throw new BadRequestException('Bạn không thể tự xóa chính tài khoản đang đăng nhập.');
     }
@@ -335,9 +341,11 @@ export class UsersService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: auditContext?.userId || currentUserId || null,
           action: 'DELETE_USER',
           entity: 'User',
           entityId: id,
+          ipAddress: auditContext?.clientIp || null,
           details: { username: user.username, fullName: user.fullName },
         },
       })
@@ -633,7 +641,7 @@ export class UsersService {
     };
   }
 
-  async confirmImport(validRows: any[]) {
+  async confirmImport(validRows: any[], auditContext?: { userId?: string; clientIp?: string }) {
     if (!validRows || validRows.length === 0) {
       throw new BadRequestException('Không có tài khoản người dùng hợp lệ nào để import.');
     }
@@ -665,8 +673,10 @@ export class UsersService {
     await this.prisma.auditLog
       .create({
         data: {
+          userId: auditContext?.userId || null,
           action: 'IMPORT_USERS',
           entity: 'User',
+          ipAddress: auditContext?.clientIp || null,
           details: { importedCount: created.length },
         },
       })
