@@ -9,6 +9,7 @@ generator client {
 
 enum Role {
   ADMIN
+  DEPT_MANAGER
   EMPLOYEE
 }
 
@@ -320,3 +321,30 @@ model AccountRequest {
   @@index([username])
   @@map("account_requests")
 }
+
+model Permission {
+  id        String   @id @default(uuid())
+  resource  String   // "questions", "exams", "reports"
+  action    String   // "read", "create", "update", "delete", "import", "export", "publish"
+  label     String   // Nhãn hiển thị trên UI admin
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String     @id @default(uuid())
+  role         Role
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  grantedBy    String?
+
+  @@unique([role, permissionId])
+  @@map("role_permissions")
+}
+

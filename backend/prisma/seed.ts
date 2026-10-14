@@ -72,6 +72,29 @@ async function main() {
   });
   console.log(`  - Employee user ready: ${emp.username} (password: User@123456)`);
 
+  // 4. Seed Dept Manager User
+  const managerPasswordHash = await bcrypt.hash('User@123456', 10);
+  const manager = await prisma.user.upsert({
+    where: { username: 'truongphong1' },
+    update: {
+      passwordHash: managerPasswordHash,
+      role: Role.DEPT_MANAGER,
+      status: UserStatus.ACTIVE,
+      departmentId: departmentMap.get('TECH'),
+    },
+    create: {
+      username: 'truongphong1',
+      email: 'truongphong1@company.local',
+      passwordHash: managerPasswordHash,
+      fullName: 'Trần Thị Trưởng Phòng',
+      position: 'Trưởng phòng CNTT',
+      role: Role.DEPT_MANAGER,
+      status: UserStatus.ACTIVE,
+      departmentId: departmentMap.get('TECH'),
+    },
+  });
+  console.log(`  - Dept manager user ready: ${manager.username} (password: User@123456)`);
+
   // 4. Seed Questions
   const sampleQuestions = [
     // TECH Questions
@@ -207,6 +230,41 @@ async function main() {
     }
     console.log(`  - Question ready: [${q.code}]`);
   }
+
+  // 5. Seed Permissions & Default Role Permissions
+  console.log('  - Seeding permissions...');
+  const DEFAULT_PERMISSIONS = [
+    { resource: 'questions', action: 'read', label: 'Xem câu hỏi', sortOrder: 10 },
+    { resource: 'questions', action: 'create', label: 'Tạo câu hỏi', sortOrder: 11 },
+    { resource: 'questions', action: 'update', label: 'Sửa câu hỏi', sortOrder: 12 },
+    { resource: 'questions', action: 'delete', label: 'Xóa câu hỏi', sortOrder: 13 },
+    { resource: 'questions', action: 'import', label: 'Import câu hỏi từ Excel', sortOrder: 14 },
+    { resource: 'exams', action: 'read', label: 'Xem đề thi', sortOrder: 20 },
+    { resource: 'exams', action: 'create', label: 'Tạo đề thi', sortOrder: 21 },
+    { resource: 'exams', action: 'update', label: 'Sửa đề thi', sortOrder: 22 },
+    { resource: 'exams', action: 'publish', label: 'Xuất bản/Thu hồi đề thi', sortOrder: 23 },
+    { resource: 'exams', action: 'delete', label: 'Xóa đề thi', sortOrder: 24 },
+    { resource: 'reports', action: 'read', label: 'Xem thống kê kết quả phòng ban', sortOrder: 30 },
+    { resource: 'reports', action: 'export', label: 'Xuất báo cáo kết quả Excel', sortOrder: 31 },
+  ];
+
+  for (const p of DEFAULT_PERMISSIONS) {
+    const perm = await prisma.permission.upsert({
+      where: { resource_action: { resource: p.resource, action: p.action } },
+      update: { label: p.label, sortOrder: p.sortOrder },
+      create: p,
+    });
+
+    // Grant default questions:read, questions:create, exams:read, reports:read to DEPT_MANAGER
+    if (['questions:read', 'questions:create', 'exams:read', 'reports:read'].includes(`${p.resource}:${p.action}`)) {
+      await prisma.rolePermission.upsert({
+        where: { role_permissionId: { role: Role.DEPT_MANAGER, permissionId: perm.id } },
+        update: {},
+        create: { role: Role.DEPT_MANAGER, permissionId: perm.id },
+      });
+    }
+  }
+  console.log('  - Permissions & default role assignments ready.');
 
   console.log('✅ Seeding completed successfully!');
 }
