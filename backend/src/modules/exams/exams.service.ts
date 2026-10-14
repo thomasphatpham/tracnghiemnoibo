@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -87,7 +88,7 @@ export class ExamsService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateExamDto, userId?: string) {
+  async create(dto: CreateExamDto, userId?: string, user?: any, clientIp?: string) {
     const openAt = new Date(dto.openAt);
     const closeAt = new Date(dto.closeAt);
 
@@ -101,6 +102,47 @@ export class ExamsService {
 
     if (dto.passingCorrectAnswers > dto.totalQuestions) {
       throw new BadRequestException('Số câu đúng để đạt không thể lớn hơn tổng số câu hỏi của đề thi.');
+    }
+
+    // Role-based restrictions for DEPT_MANAGER
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId) {
+        throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
+      }
+
+      // Force departmentRules to contain ONLY user.departmentId with percentage 100%
+      dto.departmentRules = [
+        { departmentId: user.departmentId, percentage: 100 },
+      ];
+
+      // Ensure candidateScope is DEPARTMENTS with assignedDepartments containing user's department, or SPECIFIC_USERS from user's department
+      const scope = dto.candidateScope ?? CandidateScope.DEPARTMENTS;
+      if (scope === CandidateScope.ALL) {
+        throw new ForbiddenException('Quản lý phòng ban không thể tạo kỳ thi áp dụng cho toàn bộ công ty.');
+      }
+
+      if (scope === CandidateScope.DEPARTMENTS) {
+        if (dto.assignedDepartmentIds && dto.assignedDepartmentIds.some((dId) => dId !== user.departmentId)) {
+          throw new ForbiddenException('Bạn chỉ có thể phân công kỳ thi cho phòng ban của mình.');
+        }
+        dto.candidateScope = CandidateScope.DEPARTMENTS;
+        dto.assignedDepartmentIds = [user.departmentId];
+      } else if (scope === CandidateScope.SPECIFIC_USERS) {
+        if (!dto.assignedUserIds || dto.assignedUserIds.length === 0) {
+          throw new BadRequestException('Vui lòng chọn ít nhất một nhân viên tham gia kỳ thi.');
+        }
+        const assignedUsers = await this.prisma.user.findMany({
+          where: { id: { in: dto.assignedUserIds } },
+          select: { id: true, departmentId: true },
+        });
+        if (
+          assignedUsers.length !== dto.assignedUserIds.length ||
+          assignedUsers.some((u) => u.departmentId !== user.departmentId)
+        ) {
+          throw new ForbiddenException('Bạn chỉ có thể phân công nhân viên thuộc phòng ban của mình.');
+        }
+        dto.candidateScope = CandidateScope.SPECIFIC_USERS;
+      }
     }
 
     // Calculate largest remainder question distribution
@@ -213,28 +255,32 @@ export class ExamsService {
     });
 
     // Write audit log
-    if (userId) {
-      await this.prisma.auditLog.create({
-        data: {
-          userId,
-          action: 'CREATE_EXAM',
-          entity: 'Exam',
-          entityId: exam.id,
-          details: {
-            name: exam.name,
-            totalQuestions: exam.totalQuestions,
-            openAt: exam.openAt,
-            closeAt: exam.closeAt,
-            departmentRules: calculatedRules,
-          } as any,
-        },
-      });
+    const auditUserId = user?.id || userId;
+    if (auditUserId) {
+      await this.prisma.auditLog
+        .create({
+          data: {
+            userId: auditUserId,
+            ipAddress: clientIp,
+            action: 'CREATE_EXAM',
+            entity: 'Exam',
+            entityId: exam.id,
+            details: {
+              name: exam.name,
+              totalQuestions: exam.totalQuestions,
+              openAt: exam.openAt,
+              closeAt: exam.closeAt,
+              departmentRules: calculatedRules,
+            } as any,
+          },
+        })
+        .catch(() => {});
     }
 
     return exam;
   }
 
-  async findAll(query: QueryExamsDto, user: any) {
+  async findAll(query: QueryExamsDto, user: any, clientIp?: string) {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -268,6 +314,19 @@ export class ExamsService {
           },
         },
       ];
+    } else if (user.role === Role.DEPT_MANAGER) {
+      if (!user.permissions || !user.permissions.includes('exams:read')) {
+        throw new ForbiddenException('Bạn không có quyền thực hiện chức năng này (exams:read).');
+      }
+      if (!user.departmentId) {
+        throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
+      }
+      where.departmentRules = {
+        some: { departmentId: user.departmentId },
+      };
+      if (query.status) {
+        where.status = query.status;
+      }
     } else {
       // Admin filters
       if (query.status) {
@@ -375,7 +434,7 @@ export class ExamsService {
     };
   }
 
-  async findOne(id: string, user?: any) {
+  async findOne(id: string, user?: any, clientIp?: string) {
     const exam = await this.prisma.exam.findUnique({
       where: { id },
       include: {
@@ -408,6 +467,18 @@ export class ExamsService {
 
     if (!exam) {
       throw new NotFoundException('Kỳ thi không tồn tại.');
+    }
+
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId) {
+        throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
+      }
+      const hasDeptRule = exam.departmentRules.some(
+        (r) => r.departmentId === user.departmentId,
+      );
+      if (!hasDeptRule) {
+        throw new ForbiddenException('Bạn không có quyền thao tác trên đề thi của phòng ban khác.');
+      }
     }
 
     // Attach active questions availability check
@@ -455,8 +526,8 @@ export class ExamsService {
     };
   }
 
-  async checkAvailability(id: string) {
-    const exam = await this.findOne(id);
+  async checkAvailability(id: string, user?: any) {
+    const exam = await this.findOne(id, user);
     return {
       examId: exam.id,
       examName: exam.name,
@@ -466,7 +537,7 @@ export class ExamsService {
     };
   }
 
-  async update(id: string, dto: UpdateExamDto, userId?: string) {
+  async update(id: string, dto: UpdateExamDto, userId?: string, user?: any, clientIp?: string) {
     const existing = await this.prisma.exam.findUnique({
       where: { id },
       include: { departmentRules: true },
@@ -474,6 +545,50 @@ export class ExamsService {
 
     if (!existing) {
       throw new NotFoundException('Kỳ thi không tồn tại.');
+    }
+
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId) {
+        throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
+      }
+      const hasDeptRule = existing.departmentRules.some(
+        (r) => r.departmentId === user.departmentId,
+      );
+      if (!hasDeptRule) {
+        throw new ForbiddenException('Bạn không có quyền thao tác trên đề thi của phòng ban khác.');
+      }
+
+      if (dto.departmentRules) {
+        if (dto.departmentRules.some((r) => r.departmentId !== user.departmentId)) {
+          throw new ForbiddenException('Bạn chỉ có thể phân bổ câu hỏi cho phòng ban của mình.');
+        }
+        dto.departmentRules = [{ departmentId: user.departmentId, percentage: 100 }];
+      }
+
+      const targetScope = dto.candidateScope !== undefined ? dto.candidateScope : existing.candidateScope;
+      if (targetScope === CandidateScope.ALL) {
+        throw new ForbiddenException('Quản lý phòng ban không thể cấu hình kỳ thi áp dụng cho toàn bộ công ty.');
+      }
+      if (targetScope === CandidateScope.DEPARTMENTS && dto.assignedDepartmentIds) {
+        if (dto.assignedDepartmentIds.some((dId) => dId !== user.departmentId)) {
+          throw new ForbiddenException('Bạn chỉ có thể phân công kỳ thi cho phòng ban của mình.');
+        }
+        dto.assignedDepartmentIds = [user.departmentId];
+      } else if (targetScope === CandidateScope.SPECIFIC_USERS && dto.assignedUserIds) {
+        if (dto.assignedUserIds.length === 0) {
+          throw new BadRequestException('Vui lòng chọn ít nhất một nhân viên tham gia kỳ thi.');
+        }
+        const assignedUsers = await this.prisma.user.findMany({
+          where: { id: { in: dto.assignedUserIds } },
+          select: { id: true, departmentId: true },
+        });
+        if (
+          assignedUsers.length !== dto.assignedUserIds.length ||
+          assignedUsers.some((u) => u.departmentId !== user.departmentId)
+        ) {
+          throw new ForbiddenException('Bạn chỉ có thể phân công nhân viên thuộc phòng ban của mình.');
+        }
+      }
     }
 
     if (existing.status !== ExamStatus.DRAFT) {
@@ -599,23 +714,39 @@ export class ExamsService {
       });
     });
 
-    if (userId) {
-      await this.prisma.auditLog.create({
-        data: {
-          userId,
-          action: 'UPDATE_EXAM',
-          entity: 'Exam',
-          entityId: id,
-          details: { updatedFields: Object.keys(dto) },
-        },
-      });
+    const auditUserId = user?.id || userId;
+    if (auditUserId) {
+      await this.prisma.auditLog
+        .create({
+          data: {
+            userId: auditUserId,
+            ipAddress: clientIp,
+            action: 'UPDATE_EXAM',
+            entity: 'Exam',
+            entityId: id,
+            details: { updatedFields: Object.keys(dto) },
+          },
+        })
+        .catch(() => {});
     }
 
     return updated;
   }
 
-  async publish(id: string, userId?: string) {
-    const exam = await this.findOne(id);
+  async publish(id: string, userId?: string, user?: any, clientIp?: string) {
+    const exam = await this.findOne(id, user);
+
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId) {
+        throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
+      }
+      const hasDeptRule = exam.departmentRules.some(
+        (r) => r.departmentId === user.departmentId,
+      );
+      if (!hasDeptRule) {
+        throw new ForbiddenException('Bạn không có quyền thao tác trên đề thi của phòng ban khác.');
+      }
+    }
 
     if (exam.status !== ExamStatus.DRAFT) {
       throw new BadRequestException('Chỉ có thể công bố kỳ thi đang ở trạng thái DRAFT (Bản nháp).');
@@ -644,23 +775,39 @@ export class ExamsService {
       },
     });
 
-    if (userId) {
-      await this.prisma.auditLog.create({
-        data: {
-          userId,
-          action: 'PUBLISH_EXAM',
-          entity: 'Exam',
-          entityId: id,
-          details: { status: ExamStatus.PUBLISHED },
-        },
-      });
+    const auditUserId = user?.id || userId;
+    if (auditUserId) {
+      await this.prisma.auditLog
+        .create({
+          data: {
+            userId: auditUserId,
+            ipAddress: clientIp,
+            action: 'PUBLISH_EXAM',
+            entity: 'Exam',
+            entityId: id,
+            details: { status: ExamStatus.PUBLISHED },
+          },
+        })
+        .catch(() => {});
     }
 
     return published;
   }
 
-  async revertToDraft(id: string, userId?: string) {
-    const exam = await this.findOne(id);
+  async revertToDraft(id: string, userId?: string, user?: any, clientIp?: string) {
+    const exam = await this.findOne(id, user);
+
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId) {
+        throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
+      }
+      const hasDeptRule = exam.departmentRules.some(
+        (r) => r.departmentId === user.departmentId,
+      );
+      if (!hasDeptRule) {
+        throw new ForbiddenException('Bạn không có quyền thao tác trên đề thi của phòng ban khác.');
+      }
+    }
 
     if (exam.status !== ExamStatus.PUBLISHED) {
       throw new BadRequestException('Chỉ có thể chuyển về bản nháp các kỳ thi đang ở trạng thái CÔNG BỐ (PUBLISHED).');
@@ -692,29 +839,48 @@ export class ExamsService {
       },
     });
 
-    if (userId) {
-      await this.prisma.auditLog.create({
-        data: {
-          userId,
-          action: 'REVERT_EXAM_TO_DRAFT',
-          entity: 'Exam',
-          entityId: id,
-          details: { previousStatus: ExamStatus.PUBLISHED, status: ExamStatus.DRAFT },
-        },
-      });
+    const auditUserId = user?.id || userId;
+    if (auditUserId) {
+      await this.prisma.auditLog
+        .create({
+          data: {
+            userId: auditUserId,
+            ipAddress: clientIp,
+            action: 'REVERT_EXAM_TO_DRAFT',
+            entity: 'Exam',
+            entityId: id,
+            details: { previousStatus: ExamStatus.PUBLISHED, status: ExamStatus.DRAFT },
+          },
+        })
+        .catch(() => {});
     }
 
     return updated;
   }
 
-  async delete(id: string, userId?: string) {
+  async delete(id: string, userId?: string, user?: any, clientIp?: string) {
     const exam = await this.prisma.exam.findUnique({
       where: { id },
-      include: { _count: { select: { attempts: true } } },
+      include: {
+        departmentRules: true,
+        _count: { select: { attempts: true } },
+      },
     });
 
     if (!exam) {
       throw new NotFoundException('Kỳ thi không tồn tại.');
+    }
+
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId) {
+        throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
+      }
+      const hasDeptRule = exam.departmentRules.some(
+        (r) => r.departmentId === user.departmentId,
+      );
+      if (!hasDeptRule) {
+        throw new ForbiddenException('Bạn không có quyền thao tác trên đề thi của phòng ban khác.');
+      }
     }
 
     if (exam.status !== ExamStatus.DRAFT) {
@@ -727,29 +893,46 @@ export class ExamsService {
 
     await this.prisma.exam.delete({ where: { id } });
 
-    if (userId) {
-      await this.prisma.auditLog.create({
-        data: {
-          userId,
-          action: 'DELETE_EXAM',
-          entity: 'Exam',
-          entityId: id,
-          details: { name: exam.name },
-        },
-      });
+    const auditUserId = user?.id || userId;
+    if (auditUserId) {
+      await this.prisma.auditLog
+        .create({
+          data: {
+            userId: auditUserId,
+            ipAddress: clientIp,
+            action: 'DELETE_EXAM',
+            entity: 'Exam',
+            entityId: id,
+            details: { name: exam.name },
+          },
+        })
+        .catch(() => {});
     }
 
     return { message: 'Đã xóa kỳ thi thành công.' };
   }
 
-  async getViolationAlerts() {
+  async getViolationAlerts(user?: any) {
+    const where: any = {
+      OR: [
+        { status: AttemptStatus.AUTO_SUBMITTED },
+        { tabSwitchCount: { gt: 0 } },
+      ],
+    };
+
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId) {
+        throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
+      }
+      where.exam = {
+        departmentRules: {
+          some: { departmentId: user.departmentId },
+        },
+      };
+    }
+
     return this.prisma.examAttempt.findMany({
-      where: {
-        OR: [
-          { status: AttemptStatus.AUTO_SUBMITTED },
-          { tabSwitchCount: { gt: 0 } },
-        ],
-      },
+      where,
       orderBy: { updatedAt: 'desc' },
       take: 50,
       include: {
@@ -779,20 +962,28 @@ export class ExamsService {
     });
   }
 
-  async getExamViolations(examId: string, filter?: { search?: string; status?: string }) {
+  async getExamViolations(examId: string, filter?: { search?: string; status?: string }, user?: any) {
     const exam = await this.prisma.exam.findUnique({
       where: { id: examId },
-      select: {
-        id: true,
-        name: true,
-        maxTabSwitches: true,
-        tabDetectionEnabled: true,
-        autoSubmitOnViolate: true,
+      include: {
+        departmentRules: true,
       },
     });
 
     if (!exam) {
       throw new NotFoundException('Kỳ thi không tồn tại.');
+    }
+
+    if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.departmentId) {
+        throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
+      }
+      const hasDeptRule = exam.departmentRules.some(
+        (r) => r.departmentId === user.departmentId,
+      );
+      if (!hasDeptRule) {
+        throw new ForbiddenException('Bạn không có quyền thao tác trên đề thi của phòng ban khác.');
+      }
     }
 
     const where: any = {
