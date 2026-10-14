@@ -50,6 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/questions', label: 'Ngân Hàng Câu Hỏi', icon: HelpCircle },
     { href: '/admin/exams', label: 'Quản Lý Kỳ Thi', icon: Award },
     { href: '/admin/reports', label: 'Báo Cáo & Kết Quả', icon: BarChart3 },
+    { href: '/admin/permissions', label: 'Phân Quyền Vai Trò', icon: ShieldCheck },
     { href: '/admin/activity-logs', label: 'Lịch Sử Hoạt Động', icon: History },
   ];
 
