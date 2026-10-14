@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Param, Body, UseGuards, ParseEnumPipe } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { UpdateRolePermissionsDto } from './dto/update-role-permissions.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -19,13 +19,13 @@ export class PermissionsController {
   }
 
   @Get('role/:role')
-  async getByRole(@Param('role') role: Role) {
+  async getByRole(@Param('role', new ParseEnumPipe(Role)) role: Role) {
     return this.permissionsService.getRolePermissions(role);
   }
 
   @Put('role/:role')
   async updateRolePermissions(
-    @Param('role') role: Role,
+    @Param('role', new ParseEnumPipe(Role)) role: Role,
     @Body() dto: UpdateRolePermissionsDto,
     @CurrentUser('id') adminUserId: string,
   ) {

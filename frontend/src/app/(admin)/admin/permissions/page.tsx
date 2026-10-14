@@ -15,9 +15,7 @@ import {
   CheckCircle2,
   Info,
   Loader2,
-  Sliders,
   X,
-  FileSpreadsheet,
 } from 'lucide-react';
 
 interface PermissionItem {

@@ -269,6 +269,22 @@ describe('Exams Data Isolation & Permissions', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
+    it('DEPT_MANAGER without exams:read permission cannot view an exam', async () => {
+      prismaMock.exam.findUnique.mockResolvedValue(mockTechExam);
+
+      await expect(
+        service.findOne('exam-tech-1', techDeptManagerNoPerms),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('DEPT_MANAGER without departmentId cannot view an exam', async () => {
+      prismaMock.exam.findUnique.mockResolvedValue(mockTechExam);
+
+      await expect(
+        service.findOne('exam-tech-1', managerWithoutDept),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
     it('ADMIN can view an exam of any department', async () => {
       prismaMock.exam.findUnique.mockResolvedValue(mockSalesExam);
 

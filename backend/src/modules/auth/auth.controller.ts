@@ -132,10 +132,11 @@ export class MeController {
     // Employee can ONLY set department on first-time setup (status === REQUIRE_SETUP)
     // Once ACTIVE, Employee CANNOT change department - only Admin can!
     if (body.departmentId) {
-      if (user.role === 'EMPLOYEE' && user.status !== UserStatus.REQUIRE_SETUP) {
-        throw new BadRequestException(
-          'Nhân viên không được tự thay đổi phòng ban sau khi đã hoàn tất thiết lập ban đầu. Vui lòng liên hệ Quản trị viên.',
-        );
+      if (
+        user.role === Role.DEPT_MANAGER ||
+        (user.role === Role.EMPLOYEE && user.status !== UserStatus.REQUIRE_SETUP)
+      ) {
+        throw new BadRequestException('Bạn không được tự thay đổi phòng ban trực thuộc. Vui lòng liên hệ Quản trị viên.');
       }
 
       // Validate department exists and is active

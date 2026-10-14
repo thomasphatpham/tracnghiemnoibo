@@ -25,12 +25,14 @@ export class PermissionsService {
       throw new BadRequestException('Vai trò ADMIN luôn có toàn quyền và không thể giới hạn.');
     }
 
+    const uniquePermissionIds = Array.from(new Set(permissionIds));
+
     // Verify all permissionIds exist
-    if (permissionIds.length > 0) {
+    if (uniquePermissionIds.length > 0) {
       const validCount = await this.prisma.permission.count({
-        where: { id: { in: permissionIds } },
+        where: { id: { in: uniquePermissionIds } },
       });
-      if (validCount !== permissionIds.length) {
+      if (validCount !== uniquePermissionIds.length) {
         throw new BadRequestException('Một hoặc nhiều quyền được chọn không tồn tại.');
       }
     }
@@ -41,9 +43,9 @@ export class PermissionsService {
         where: { role },
       });
 
-      if (permissionIds.length > 0) {
+      if (uniquePermissionIds.length > 0) {
         await tx.rolePermission.createMany({
-          data: permissionIds.map((pId) => ({
+          data: uniquePermissionIds.map((pId) => ({
             role,
             permissionId: pId,
             grantedBy: adminUserId,

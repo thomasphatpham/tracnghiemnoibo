@@ -558,6 +558,22 @@ export class ReportsService {
         ? false
         : undefined;
 
+    if (query?.examId || isPassedFilter !== undefined) {
+      userWhere.attempts = {
+        some: {
+          status: {
+            in: [
+              AttemptStatus.SUBMITTED,
+              AttemptStatus.AUTO_SUBMITTED,
+              AttemptStatus.EXPIRED,
+            ],
+          },
+          ...(query?.examId ? { examId: query.examId } : {}),
+          ...(isPassedFilter !== undefined ? { isPassed: isPassedFilter } : {}),
+        },
+      };
+    }
+
     const [employees, totalEmployees, allAttempts] = await Promise.all([
       this.prisma.user.findMany({
         where: userWhere,
@@ -664,6 +680,22 @@ export class ReportsService {
         { username: { contains: s, mode: 'insensitive' } },
         { email: { contains: s, mode: 'insensitive' } },
       ];
+    }
+
+    if (query?.examId || isPassedFilter !== undefined) {
+      userWhere.attempts = {
+        some: {
+          status: {
+            in: [
+              AttemptStatus.SUBMITTED,
+              AttemptStatus.AUTO_SUBMITTED,
+              AttemptStatus.EXPIRED,
+            ],
+          },
+          ...(query?.examId ? { examId: query.examId } : {}),
+          ...(isPassedFilter !== undefined ? { isPassed: isPassedFilter } : {}),
+        },
+      };
     }
 
     const [totalEmployees, allAttempts, users] = await Promise.all([

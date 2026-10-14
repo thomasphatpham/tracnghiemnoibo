@@ -24,19 +24,12 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { getRealClientIp } from '../../common/utils/ip.util';
 
 @Controller('questions')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
-
-  private extractClientIp(req: Request): string {
-    return (
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ||
-      req.ip ||
-      '127.0.0.1'
-    );
-  }
 
   @Get()
   @RequirePermission('questions', 'read')
@@ -45,7 +38,7 @@ export class QuestionsController {
     @CurrentUser() user: any,
     @Req() req: Request,
   ) {
-    const clientIp = this.extractClientIp(req);
+    const clientIp = getRealClientIp(req);
     return this.questionsService.findAll(query, user, clientIp);
   }
 
@@ -84,7 +77,7 @@ export class QuestionsController {
     @CurrentUser() user: any,
     @Req() req: Request,
   ) {
-    const clientIp = this.extractClientIp(req);
+    const clientIp = getRealClientIp(req);
     return this.questionsService.confirmImport(validRows, user, clientIp);
   }
 
@@ -95,7 +88,7 @@ export class QuestionsController {
     @CurrentUser() user: any,
     @Req() req: Request,
   ) {
-    const clientIp = this.extractClientIp(req);
+    const clientIp = getRealClientIp(req);
     return this.questionsService.findOne(id, user, clientIp);
   }
 
@@ -106,7 +99,7 @@ export class QuestionsController {
     @CurrentUser() user: any,
     @Req() req: Request,
   ) {
-    const clientIp = this.extractClientIp(req);
+    const clientIp = getRealClientIp(req);
     return this.questionsService.create(dto, user, clientIp);
   }
 
@@ -118,7 +111,7 @@ export class QuestionsController {
     @CurrentUser() user: any,
     @Req() req: Request,
   ) {
-    const clientIp = this.extractClientIp(req);
+    const clientIp = getRealClientIp(req);
     return this.questionsService.update(id, dto, user, clientIp);
   }
 
@@ -129,7 +122,7 @@ export class QuestionsController {
     @CurrentUser() user: any,
     @Req() req: Request,
   ) {
-    const clientIp = this.extractClientIp(req);
+    const clientIp = getRealClientIp(req);
     return this.questionsService.toggleStatus(id, user, clientIp);
   }
 
@@ -140,7 +133,7 @@ export class QuestionsController {
     @CurrentUser() user: any,
     @Req() req: Request,
   ) {
-    const clientIp = this.extractClientIp(req);
+    const clientIp = getRealClientIp(req);
     return this.questionsService.delete(id, user, clientIp);
   }
 }

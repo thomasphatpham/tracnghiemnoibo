@@ -470,6 +470,9 @@ export class ExamsService {
     }
 
     if (user && user.role === Role.DEPT_MANAGER) {
+      if (!user.permissions || !user.permissions.includes('exams:read')) {
+        throw new ForbiddenException('Bạn không có quyền thực hiện chức năng này (exams:read).');
+      }
       if (!user.departmentId) {
         throw new ForbiddenException('Tài khoản quản lý chưa được gán phòng ban trực thuộc.');
       }

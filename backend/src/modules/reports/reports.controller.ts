@@ -88,7 +88,6 @@ export class ReportsController {
   }
 
   @Get('my-department')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @RequirePermission('reports', 'read')
   async getMyDepartment(
     @CurrentUser() user: any,
@@ -118,7 +117,6 @@ export class ReportsController {
   }
 
   @Get('my-department/export')
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @RequirePermission('reports', 'export')
   async exportMyDepartment(
     @CurrentUser() user: any,

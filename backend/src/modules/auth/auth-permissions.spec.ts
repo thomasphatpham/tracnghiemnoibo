@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Role, UserStatus } from '@prisma/client';
@@ -243,6 +244,38 @@ describe('Auth Permissions Integration', () => {
 
       expect(prismaMock.rolePermission.findMany).not.toHaveBeenCalled();
       expect(res.user?.permissions).toEqual([]);
+    });
+  });
+
+  describe('MeController.updateProfile', () => {
+    let controller: MeController;
+
+    beforeEach(() => {
+      controller = new MeController(prismaMock as PrismaService);
+    });
+
+    it('rejects DEPT_MANAGER attempting to supply a departmentId with BadRequestException', async () => {
+      const user = {
+        id: 'dm-1',
+        role: Role.DEPT_MANAGER,
+        status: UserStatus.ACTIVE,
+      };
+
+      await expect(
+        controller.updateProfile(user, { departmentId: 'dept-2' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects active EMPLOYEE attempting to supply a departmentId with BadRequestException', async () => {
+      const user = {
+        id: 'emp-1',
+        role: Role.EMPLOYEE,
+        status: UserStatus.ACTIVE,
+      };
+
+      await expect(
+        controller.updateProfile(user, { departmentId: 'dept-2' }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

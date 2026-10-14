@@ -202,6 +202,19 @@ describe('Department Reports & Export (Task 7)', () => {
               { username: { contains: 'Nguyen', mode: 'insensitive' } },
               { email: { contains: 'Nguyen', mode: 'insensitive' } },
             ],
+            attempts: {
+              some: {
+                status: {
+                  in: [
+                    AttemptStatus.SUBMITTED,
+                    AttemptStatus.AUTO_SUBMITTED,
+                    AttemptStatus.EXPIRED,
+                  ],
+                },
+                examId: 'exam-1',
+                isPassed: true,
+              },
+            },
           }),
           skip: 10,
           take: 10,
