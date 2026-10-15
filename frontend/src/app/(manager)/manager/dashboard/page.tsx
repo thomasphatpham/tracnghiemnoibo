@@ -12,18 +12,13 @@ import {
   Users,
   TrendingUp,
   PlusCircle,
-  FileSpreadsheet,
   BarChart3,
   Building2,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  ShieldCheck,
   Loader2,
 } from 'lucide-react';
 
 export default function ManagerDashboardPage() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { can } = usePermissions();
 
   const [stats, setStats] = useState({
@@ -37,33 +32,40 @@ export default function ManagerDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Nếu auth đang tải hoặc chưa có thông tin user, không thực hiện gọi API
+    if (authLoading || !user) return;
+
+    let isMounted = true;
+
     async function loadDashboardData() {
       setIsLoading(true);
       try {
         const promises: Promise<any>[] = [];
 
-        // 1. Questions count (if can read questions)
-        if (can('questions', 'read')) {
+        // 1. Số lượng câu hỏi thuộc đơn vị
+        if (can('questions', 'read') && user?.departmentId) {
           promises.push(api.get('/questions?limit=1'));
         } else {
           promises.push(Promise.resolve({ data: { total: 0 } }));
         }
 
-        // 2. Exams count (if can read exams)
-        if (can('exams', 'read')) {
-          promises.push(api.get('/exams?limit=100'));
+        // 2. Số lượng kỳ thi đang mở (PUBLISHED)
+        if (can('exams', 'read') && user?.departmentId) {
+          promises.push(api.get('/exams?status=PUBLISHED&limit=1'));
         } else {
-          promises.push(Promise.resolve({ data: { data: [] } }));
+          promises.push(Promise.resolve({ data: { total: 0 } }));
         }
 
-        // 3. Department report & summary (if can read reports)
-        if (can('reports', 'read')) {
+        // 3. Báo cáo & tổng quan kết quả nhân sự phòng ban
+        if (can('reports', 'read') && user?.departmentId) {
           promises.push(api.get('/reports/my-department?limit=1'));
         } else {
           promises.push(Promise.resolve({ data: null }));
         }
 
         const [questionsRes, examsRes, reportRes] = await Promise.allSettled(promises);
+
+        if (!isMounted) return;
 
         let totalQuestions = 0;
         if (questionsRes.status === 'fulfilled' && questionsRes.value?.data) {
@@ -72,8 +74,7 @@ export default function ManagerDashboardPage() {
 
         let activeExams = 0;
         if (examsRes.status === 'fulfilled' && examsRes.value?.data) {
-          const list = examsRes.value.data.data || (Array.isArray(examsRes.value.data) ? examsRes.value.data : []);
-          activeExams = list.filter((e: any) => e.status === 'PUBLISHED').length;
+          activeExams = examsRes.value.data.total ?? 0;
         }
 
         let totalEmployees = 0;
@@ -101,12 +102,18 @@ export default function ManagerDashboardPage() {
       } catch (err) {
         console.error('Lỗi tải dữ liệu dashboard phòng ban', err);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
 
     loadDashboardData();
-  }, [can]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authLoading, user?.id, user?.departmentId, can]);
 
   const deptName = departmentInfo?.name || user?.department?.name || 'Chưa phân bổ';
   const deptCode = departmentInfo?.code || user?.department?.code || 'N/A';

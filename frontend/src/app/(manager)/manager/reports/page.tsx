@@ -43,7 +43,7 @@ export default function ManagerReportsPage() {
 
   // Tải danh sách kỳ thi để làm bộ lọc
   useEffect(() => {
-    if (can('exams', 'read')) {
+    if (user && can('exams', 'read')) {
       api
         .get('/exams?limit=100')
         .then((res) => {
@@ -52,7 +52,7 @@ export default function ManagerReportsPage() {
         })
         .catch(() => {});
     }
-  }, [can]);
+  }, [user, can]);
 
   // Tải báo cáo phòng ban
   const fetchDepartmentReport = useCallback(async () => {
