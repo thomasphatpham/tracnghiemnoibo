@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, use } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { api } from '@/lib/api';
+import React, { useEffect, useState, use } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { api } from "@/lib/api";
 import {
   HelpCircle,
   ArrowLeft,
@@ -11,41 +11,45 @@ import {
   AlertCircle,
   CheckCircle2,
   Trash2,
-} from 'lucide-react';
+} from "lucide-react";
 
-export default function EditQuestionPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditQuestionPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const resolvedParams = use(params);
   const questionId = resolvedParams.id;
   const router = useRouter();
 
   const [departments, setDepartments] = useState<any[]>([]);
-  const [code, setCode] = useState('');
-  const [departmentId, setDepartmentId] = useState('');
-  const [content, setContent] = useState('');
-  const [explanation, setExplanation] = useState('');
+  const [code, setCode] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [content, setContent] = useState("");
+  const [explanation, setExplanation] = useState("");
 
-  const [optionA, setOptionA] = useState('');
-  const [optionB, setOptionB] = useState('');
-  const [optionC, setOptionC] = useState('');
-  const [optionD, setOptionD] = useState('');
-  const [correctKey, setCorrectKey] = useState<'A' | 'B' | 'C' | 'D'>('A');
+  const [optionA, setOptionA] = useState("");
+  const [optionB, setOptionB] = useState("");
+  const [optionC, setOptionC] = useState("");
+  const [optionD, setOptionD] = useState("");
+  const [correctKey, setCorrectKey] = useState<"A" | "B" | "C" | "D">("A");
 
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteQuestion = async () => {
     setIsDeleting(true);
-    setErrorMessage('');
+    setErrorMessage("");
     try {
       await api.delete(`/questions/${questionId}`);
-      router.push('/admin/questions');
+      router.push("/admin/questions");
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Không thể xóa câu hỏi này.';
-      setErrorMessage(Array.isArray(msg) ? msg.join(', ') : msg);
+      const msg = err.response?.data?.message || "Không thể xóa câu hỏi này.";
+      setErrorMessage(Array.isArray(msg) ? msg.join(", ") : msg);
       setShowDeleteConfirm(false);
     } finally {
       setIsDeleting(false);
@@ -56,29 +60,30 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
     async function loadData() {
       try {
         const [depRes, qRes] = await Promise.all([
-          api.get('/departments'),
+          api.get("/departments"),
           api.get(`/questions/${questionId}`),
         ]);
         setDepartments(depRes.data || []);
 
         const q = qRes.data;
-        setCode(q.code || '');
-        setDepartmentId(q.departmentId || '');
-        setContent(q.content || '');
-        setExplanation(q.explanation || '');
+        setCode(q.code || "");
+        setDepartmentId(q.departmentId || "");
+        setContent(q.content || "");
+        setExplanation(q.explanation || "");
 
         if (q.options && q.options.length >= 4) {
           const opts: any[] = q.options;
-          const findOpt = (key: string) => opts.find((o: any) => o.key === key)?.content || '';
-          setOptionA(findOpt('A'));
-          setOptionB(findOpt('B'));
-          setOptionC(findOpt('C'));
-          setOptionD(findOpt('D'));
+          const findOpt = (key: string) =>
+            opts.find((o: any) => o.key === key)?.content || "";
+          setOptionA(findOpt("A"));
+          setOptionB(findOpt("B"));
+          setOptionC(findOpt("C"));
+          setOptionD(findOpt("D"));
           const correct = opts.find((o: any) => o.isCorrect);
           if (correct) setCorrectKey(correct.key as any);
         }
       } catch (err) {
-        setErrorMessage('Không thể tải thông tin câu hỏi.');
+        setErrorMessage("Không thể tải thông tin câu hỏi.");
       } finally {
         setIsPageLoading(false);
       }
@@ -89,17 +94,22 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!departmentId || !content.trim()) {
-      setErrorMessage('Vui lòng điền đầy đủ phòng ban và nội dung câu hỏi.');
+      setErrorMessage("Vui lòng điền đầy đủ phòng ban và nội dung câu hỏi.");
       return;
     }
-    if (!optionA.trim() || !optionB.trim() || !optionC.trim() || !optionD.trim()) {
-      setErrorMessage('Vui lòng nhập đầy đủ cả 4 phương án A, B, C, D.');
+    if (
+      !optionA.trim() ||
+      !optionB.trim() ||
+      !optionC.trim() ||
+      !optionD.trim()
+    ) {
+      setErrorMessage("Vui lòng nhập đầy đủ cả 4 phương án A, B, C, D.");
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage('');
-    setSuccessMessage('');
+    setErrorMessage("");
+    setSuccessMessage("");
 
     try {
       await api.patch(`/questions/${questionId}`, {
@@ -107,20 +117,20 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
         content: content.trim(),
         explanation: explanation.trim() || undefined,
         options: [
-          { key: 'A', content: optionA.trim(), isCorrect: correctKey === 'A' },
-          { key: 'B', content: optionB.trim(), isCorrect: correctKey === 'B' },
-          { key: 'C', content: optionC.trim(), isCorrect: correctKey === 'C' },
-          { key: 'D', content: optionD.trim(), isCorrect: correctKey === 'D' },
+          { key: "A", content: optionA.trim(), isCorrect: correctKey === "A" },
+          { key: "B", content: optionB.trim(), isCorrect: correctKey === "B" },
+          { key: "C", content: optionC.trim(), isCorrect: correctKey === "C" },
+          { key: "D", content: optionD.trim(), isCorrect: correctKey === "D" },
         ],
       });
 
-      setSuccessMessage('Cập nhật câu hỏi thành công!');
+      setSuccessMessage("Cập nhật câu hỏi thành công!");
       setTimeout(() => {
-        router.push('/admin/questions');
+        router.push("/admin/questions");
       }, 1000);
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Không thể cập nhật câu hỏi.';
-      setErrorMessage(Array.isArray(msg) ? msg.join(', ') : msg);
+      const msg = err.response?.data?.message || "Không thể cập nhật câu hỏi.";
+      setErrorMessage(Array.isArray(msg) ? msg.join(", ") : msg);
     } finally {
       setIsLoading(false);
     }
@@ -191,8 +201,10 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
               </label>
               <select
                 value={departmentId}
+                disabled
                 onChange={(e) => setDepartmentId(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-400 cursor-not-allowed"
+                style={{ WebkitAppearance: "none" }}
               >
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -221,7 +233,8 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                4 Phương Án Trả Lời (Chọn 1 đáp án đúng) <span className="text-rose-500">*</span>
+                4 Phương Án Trả Lời (Chọn 1 đáp án đúng){" "}
+                <span className="text-rose-500">*</span>
               </label>
               <span className="text-[11px] text-slate-400">
                 Click vào radio để đánh dấu đáp án đúng
@@ -229,17 +242,17 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
             </div>
 
             {[
-              { key: 'A', value: optionA, setter: setOptionA },
-              { key: 'B', value: optionB, setter: setOptionB },
-              { key: 'C', value: optionC, setter: setOptionC },
-              { key: 'D', value: optionD, setter: setOptionD },
+              { key: "A", value: optionA, setter: setOptionA },
+              { key: "B", value: optionB, setter: setOptionB },
+              { key: "C", value: optionC, setter: setOptionC },
+              { key: "D", value: optionD, setter: setOptionD },
             ].map((opt) => (
               <div
                 key={opt.key}
                 className={`p-3 rounded-xl border flex items-center gap-3 transition ${
                   correctKey === opt.key
-                    ? 'bg-emerald-50/70 border-emerald-400'
-                    : 'bg-white border-slate-200 hover:border-slate-300'
+                    ? "bg-emerald-50/70 border-emerald-400"
+                    : "bg-white border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -253,8 +266,8 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
                   <span
                     className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${
                       correctKey === opt.key
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-slate-200 text-slate-700'
+                        ? "bg-emerald-600 text-white"
+                        : "bg-slate-200 text-slate-700"
                     }`}
                   >
                     {opt.key}
@@ -302,7 +315,8 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
                     Xác nhận xóa vĩnh viễn câu hỏi [{code}]?
                   </p>
                   <p className="text-xs text-rose-700 leading-relaxed">
-                    Câu hỏi và các phương án lựa chọn sẽ bị xóa vĩnh viễn khỏi ngân hàng đề thi. Thao tác này không thể hoàn tác.
+                    Câu hỏi và các phương án lựa chọn sẽ bị xóa vĩnh viễn khỏi
+                    ngân hàng đề thi. Thao tác này không thể hoàn tác.
                   </p>
                 </div>
               </div>
