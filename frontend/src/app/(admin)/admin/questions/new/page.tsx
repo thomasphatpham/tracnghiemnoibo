@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { api } from '@/lib/api';
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { api } from "@/lib/api";
 import {
   HelpCircle,
   ArrowLeft,
@@ -13,24 +13,24 @@ import {
   CheckCircle2,
   RefreshCw,
   Sparkles,
-} from 'lucide-react';
+} from "lucide-react";
 
 /**
  * Sinh mã câu hỏi tự động theo định dạng: [MÃ PHÒNG BAN]-Q[6 KÝ TỰ HEX]
  * Giống hệt thuật toán tự sinh mã trong tính năng Import Excel.
  */
-function generateQuestionCode(depCode: string = 'Q'): string {
+function generateQuestionCode(depCode: string = "Q"): string {
   const bytes = new Uint8Array(3);
-  if (typeof window !== 'undefined' && window.crypto) {
+  if (typeof window !== "undefined" && window.crypto) {
     window.crypto.getRandomValues(bytes);
   } else {
     for (let i = 0; i < 3; i++) bytes[i] = Math.floor(Math.random() * 256);
   }
   const randHex = Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
     .toUpperCase();
-  const prefix = depCode ? depCode.trim().toUpperCase() : 'Q';
+  const prefix = depCode ? depCode.trim().toUpperCase() : "Q";
   return `${prefix}-Q${randHex}`;
 }
 
@@ -38,22 +38,22 @@ export default function CreateQuestionPage() {
   const router = useRouter();
 
   const [departments, setDepartments] = useState<any[]>([]);
-  const [code, setCode] = useState('');
-  const [departmentId, setDepartmentId] = useState('');
-  const [content, setContent] = useState('');
-  const [explanation, setExplanation] = useState('');
+  const [code, setCode] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
+  const [content, setContent] = useState("");
+  const [explanation, setExplanation] = useState("");
 
-  const [optionA, setOptionA] = useState('');
-  const [optionB, setOptionB] = useState('');
-  const [optionC, setOptionC] = useState('');
-  const [optionD, setOptionD] = useState('');
-  const [correctKey, setCorrectKey] = useState<'A' | 'B' | 'C' | 'D'>('A');
+  const [optionA, setOptionA] = useState("");
+  const [optionB, setOptionB] = useState("");
+  const [optionC, setOptionC] = useState("");
+  const [optionD, setOptionD] = useState("");
+  const [correctKey, setCorrectKey] = useState<"A" | "B" | "C" | "D">("A");
 
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    api.get('/departments?onlyActive=true').then((res) => {
+    api.get("/departments?onlyActive=true").then((res) => {
       const deps = res.data || [];
       setDepartments(deps);
       if (deps.length > 0) {
@@ -68,49 +68,55 @@ export default function CreateQuestionPage() {
     setDepartmentId(newDepId);
     const dep = departments.find((d) => d.id === newDepId);
     // Khi đổi phòng ban, tự động cập nhật mã mới theo tiền tố phòng ban đó
-    setCode(generateQuestionCode(dep?.code || 'Q'));
+    setCode(generateQuestionCode(dep?.code || "Q"));
   };
 
   const handleRegenerateCode = () => {
     const dep = departments.find((d) => d.id === departmentId);
-    setCode(generateQuestionCode(dep?.code || 'Q'));
+    setCode(generateQuestionCode(dep?.code || "Q"));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!departmentId || !content.trim()) {
-      setErrorMessage('Vui lòng điền đầy đủ phòng ban và nội dung câu hỏi.');
+      setErrorMessage("Vui lòng điền đầy đủ phòng ban và nội dung câu hỏi.");
       return;
     }
-    if (!optionA.trim() || !optionB.trim() || !optionC.trim() || !optionD.trim()) {
-      setErrorMessage('Vui lòng nhập đầy đủ cả 4 phương án A, B, C, D.');
+    if (
+      !optionA.trim() ||
+      !optionB.trim() ||
+      !optionC.trim() ||
+      !optionD.trim()
+    ) {
+      setErrorMessage("Vui lòng nhập đầy đủ cả 4 phương án A, B, C, D.");
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage('');
+    setErrorMessage("");
 
     const dep = departments.find((d) => d.id === departmentId);
-    const submitCode = code.trim().toUpperCase() || generateQuestionCode(dep?.code || 'Q');
+    const submitCode =
+      code.trim().toUpperCase() || generateQuestionCode(dep?.code || "Q");
 
     try {
-      await api.post('/questions', {
+      await api.post("/questions", {
         code: submitCode,
         departmentId,
         content: content.trim(),
         explanation: explanation.trim() || undefined,
         options: [
-          { key: 'A', content: optionA.trim(), isCorrect: correctKey === 'A' },
-          { key: 'B', content: optionB.trim(), isCorrect: correctKey === 'B' },
-          { key: 'C', content: optionC.trim(), isCorrect: correctKey === 'C' },
-          { key: 'D', content: optionD.trim(), isCorrect: correctKey === 'D' },
+          { key: "A", content: optionA.trim(), isCorrect: correctKey === "A" },
+          { key: "B", content: optionB.trim(), isCorrect: correctKey === "B" },
+          { key: "C", content: optionC.trim(), isCorrect: correctKey === "C" },
+          { key: "D", content: optionD.trim(), isCorrect: correctKey === "D" },
         ],
       });
 
-      router.push('/admin/questions');
+      router.push("/admin/questions");
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Không thể tạo câu hỏi.';
-      setErrorMessage(Array.isArray(msg) ? msg.join(', ') : msg);
+      const msg = err.response?.data?.message || "Không thể tạo câu hỏi.";
+      setErrorMessage(Array.isArray(msg) ? msg.join(", ") : msg);
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +136,9 @@ export default function CreateQuestionPage() {
             <HelpCircle className="w-6 h-6 text-emerald-600" />
             <span>Thêm Câu Hỏi Trắc Nghiệm Mới</span>
           </h1>
-          <p className="text-xs text-slate-500">Soạn thảo nội dung câu hỏi và 4 phương án trả lời</p>
+          <p className="text-xs text-slate-500">
+            Soạn thảo nội dung câu hỏi và 4 phương án trả lời
+          </p>
         </div>
       </div>
 
@@ -167,13 +175,18 @@ export default function CreateQuestionPage() {
               <input
                 type="text"
                 required
+                disabled
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="VD: CNTT-QA1B2C3"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-not-allowed"
               />
               <p className="text-[11px] text-slate-400 mt-1">
-                Định dạng: <span className="font-mono font-semibold text-slate-600">[MÃ PB]-Q[HEX]</span> (chuẩn theo import Excel)
+                Định dạng:{" "}
+                <span className="font-mono font-semibold text-slate-600">
+                  [MÃ PB]-Q[HEX]
+                </span>{" "}
+                (chuẩn theo import Excel)
               </p>
             </div>
 
@@ -213,7 +226,8 @@ export default function CreateQuestionPage() {
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                4 Phương Án Trả Lời (Chọn 1 đáp án đúng) <span className="text-rose-500">*</span>
+                4 Phương Án Trả Lời (Chọn 1 đáp án đúng){" "}
+                <span className="text-rose-500">*</span>
               </label>
               <span className="text-[11px] text-slate-400">
                 Click vào radio để đánh dấu đáp án đúng
@@ -221,17 +235,17 @@ export default function CreateQuestionPage() {
             </div>
 
             {[
-              { key: 'A', value: optionA, setter: setOptionA },
-              { key: 'B', value: optionB, setter: setOptionB },
-              { key: 'C', value: optionC, setter: setOptionC },
-              { key: 'D', value: optionD, setter: setOptionD },
+              { key: "A", value: optionA, setter: setOptionA },
+              { key: "B", value: optionB, setter: setOptionB },
+              { key: "C", value: optionC, setter: setOptionC },
+              { key: "D", value: optionD, setter: setOptionD },
             ].map((opt) => (
               <div
                 key={opt.key}
                 className={`p-3 rounded-xl border flex items-center gap-3 transition ${
                   correctKey === opt.key
-                    ? 'bg-emerald-50/70 border-emerald-400'
-                    : 'bg-white border-slate-200 hover:border-slate-300'
+                    ? "bg-emerald-50/70 border-emerald-400"
+                    : "bg-white border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -245,8 +259,8 @@ export default function CreateQuestionPage() {
                   <span
                     className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${
                       correctKey === opt.key
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-slate-200 text-slate-700'
+                        ? "bg-emerald-600 text-white"
+                        : "bg-slate-200 text-slate-700"
                     }`}
                   >
                     {opt.key}
