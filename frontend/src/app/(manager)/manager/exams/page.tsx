@@ -158,6 +158,24 @@ export default function ManagerExamsPage() {
       setFormError('Tài khoản của bạn chưa được liên kết với phòng ban.');
       return;
     }
+    if (!openAt || !closeAt) {
+      setFormError('Vui lòng chọn thời gian bắt đầu và kết thúc kỳ thi.');
+      return;
+    }
+    const openDate = new Date(openAt);
+    const closeDate = new Date(closeAt);
+    if (isNaN(openDate.getTime()) || isNaN(closeDate.getTime())) {
+      setFormError('Thời gian mở hoặc kết thúc không hợp lệ.');
+      return;
+    }
+    if (closeDate <= openDate) {
+      setFormError('Thời gian kết thúc phải diễn ra sau thời gian mở đề thi.');
+      return;
+    }
+    if (Number(passingCorrectAnswers) > Number(totalQuestions)) {
+      setFormError('Số câu đúng để đạt không thể lớn hơn tổng số câu hỏi của đề thi.');
+      return;
+    }
 
     setIsSubmitting(true);
     setFormError('');
@@ -165,8 +183,8 @@ export default function ManagerExamsPage() {
     const payload = {
       name: name.trim(),
       description: description.trim() || undefined,
-      openAt: new Date(openAt).toISOString(),
-      closeAt: new Date(closeAt).toISOString(),
+      openAt: openDate.toISOString(),
+      closeAt: closeDate.toISOString(),
       durationMinutes: Number(durationMinutes),
       totalQuestions: Number(totalQuestions),
       passingCorrectAnswers: Number(passingCorrectAnswers),
@@ -220,6 +238,26 @@ export default function ManagerExamsPage() {
           message.error(Array.isArray(msg) ? msg.join(', ') : msg);
         } finally {
           setPublishingId(null);
+        }
+      },
+    });
+  };
+
+  const handleRevertToDraft = (id: string, examName: string) => {
+    confirm({
+      title: 'Xác nhận thu hồi đề thi',
+      content: `Bạn có chắc muốn thu hồi kỳ thi "${examName}" về trạng thái Bản nháp để chỉnh sửa? Thí sinh sẽ tạm thời không thể làm bài cho đến khi công bố lại.`,
+      okText: 'Thu hồi',
+      okType: 'primary',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await api.patch(`/exams/${id}/revert-to-draft`);
+          message.success('Đã thu hồi kỳ thi về bản nháp thành công.');
+          await fetchExams();
+        } catch (err: any) {
+          const msg = err.response?.data?.message || 'Không thể thu hồi kỳ thi.';
+          message.error(Array.isArray(msg) ? msg.join(', ') : msg);
         }
       },
     });
@@ -499,6 +537,20 @@ export default function ManagerExamsPage() {
                                     <Globe className="w-3.5 h-3.5" />
                                   )}
                                   <span>Công bố</span>
+                                </button>
+                              </PermissionGate>
+                            )}
+
+                            {/* Nút Thu hồi về bản nháp */}
+                            {isPublished && (
+                              <PermissionGate resource="exams" action="publish">
+                                <button
+                                  onClick={() => handleRevertToDraft(exam.id, exam.name)}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition cursor-pointer"
+                                  title="Thu hồi kỳ thi về trạng thái Bản nháp để chỉnh sửa"
+                                >
+                                  <RotateCcw className="w-3.5 h-3.5" />
+                                  <span>Thu hồi</span>
                                 </button>
                               </PermissionGate>
                             )}

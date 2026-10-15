@@ -255,14 +255,12 @@ async function main() {
       create: p,
     });
 
-    // Grant default questions:read, questions:create, exams:read, reports:read to DEPT_MANAGER
-    if (['questions:read', 'questions:create', 'exams:read', 'reports:read'].includes(`${p.resource}:${p.action}`)) {
-      await prisma.rolePermission.upsert({
-        where: { role_permissionId: { role: Role.DEPT_MANAGER, permissionId: perm.id } },
-        update: {},
-        create: { role: Role.DEPT_MANAGER, permissionId: perm.id },
-      });
-    }
+    // Grant all department-level permissions to DEPT_MANAGER by default
+    await prisma.rolePermission.upsert({
+      where: { role_permissionId: { role: Role.DEPT_MANAGER, permissionId: perm.id } },
+      update: {},
+      create: { role: Role.DEPT_MANAGER, permissionId: perm.id },
+    });
   }
   console.log('  - Permissions & default role assignments ready.');
 

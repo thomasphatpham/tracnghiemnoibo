@@ -12,6 +12,7 @@ import {
   Unlock,
   Building2,
   Shield,
+  ShieldCheck,
   User as UserIcon,
   Loader2,
   Edit,
@@ -294,6 +295,7 @@ export default function AdminUsersPage() {
               >
                 <option value="">Tất cả vai trò</option>
                 <option value="ADMIN">Quản trị viên (ADMIN)</option>
+                <option value="DEPT_MANAGER">Quản lý phòng ban (DEPT_MANAGER)</option>
                 <option value="EMPLOYEE">Nhân viên (EMPLOYEE)</option>
               </select>
 
@@ -370,6 +372,11 @@ export default function AdminUsersPage() {
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                                 <Shield className="w-3 h-3" />
                                 <span>Quản trị</span>
+                              </span>
+                            ) : u.role === 'DEPT_MANAGER' ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                                <ShieldCheck className="w-3 h-3 text-amber-600" />
+                                <span>Quản lý phòng</span>
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">

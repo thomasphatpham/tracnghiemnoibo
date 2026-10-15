@@ -265,6 +265,7 @@ export default function EditUserPage({
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer font-semibold"
               >
                 <option value="EMPLOYEE">Nhân viên (EMPLOYEE)</option>
+                <option value="DEPT_MANAGER">Quản lý phòng ban (DEPT_MANAGER)</option>
                 <option value="ADMIN">Quản trị viên (ADMIN)</option>
               </select>
             </div>

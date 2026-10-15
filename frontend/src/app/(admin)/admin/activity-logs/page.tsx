@@ -40,7 +40,7 @@ interface AuditLogItem {
     username: string;
     fullName: string;
     email: string;
-    role: 'ADMIN' | 'EMPLOYEE';
+    role: 'ADMIN' | 'DEPT_MANAGER' | 'EMPLOYEE';
     department?: {
       id: string;
       name: string;
@@ -540,10 +540,16 @@ export default function ActivityLogsPage() {
                                   className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase ${
                                     item.user.role === 'ADMIN'
                                       ? 'bg-amber-100 text-amber-800'
+                                      : item.user.role === 'DEPT_MANAGER'
+                                      ? 'bg-purple-100 text-purple-800'
                                       : 'bg-blue-100 text-blue-800'
                                   }`}
                                 >
-                                  {item.user.role}
+                                  {item.user.role === 'ADMIN'
+                                    ? 'ADMIN'
+                                    : item.user.role === 'DEPT_MANAGER'
+                                    ? 'QUẢN LÝ PHÒNG'
+                                    : 'NHÂN VIÊN'}
                                 </span>
                               </div>
                               <div className="text-[11px] text-slate-400 truncate">
@@ -552,7 +558,7 @@ export default function ActivityLogsPage() {
                               </div>
                             </div>
                           </div>
-                        ) : item.userId === null && item.ipAddress === 'SYSTEM' ? (
+                        ) : item.userId === null && (item.ipAddress === 'SYSTEM' || item.action === 'SYSTEM_AUTO_SUBMIT') ? (
                           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                             <Bot className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                             <span>Hệ thống (Tự động)</span>
@@ -560,7 +566,11 @@ export default function ActivityLogsPage() {
                         ) : (
                           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50/80 text-amber-800 border border-amber-200">
                             <User className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                            <span>Vô danh / Khách</span>
+                            <span>
+                              {item.details && typeof item.details === 'object' && (item.details as any).username
+                                ? `@${(item.details as any).username} (Chưa xác thực)`
+                                : 'Vô danh / Khách'}
+                            </span>
                           </div>
                         )}
                       </td>

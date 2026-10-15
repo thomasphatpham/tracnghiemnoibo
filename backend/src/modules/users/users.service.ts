@@ -597,12 +597,14 @@ export class UsersService {
       let role: Role = Role.EMPLOYEE;
       if (roleRaw === 'ADMIN') {
         role = Role.ADMIN;
+      } else if (roleRaw === 'DEPT_MANAGER' || roleRaw === 'QUẢN LÝ PHÒNG BAN' || roleRaw === 'QUAN_LY_PHONG_BAN') {
+        role = Role.DEPT_MANAGER;
       } else if (roleRaw && roleRaw !== 'EMPLOYEE') {
         errors.push({
           row: rowNumber,
           code: usernameRaw,
           field: 'Vai trò',
-          message: `Vai trò phải là EMPLOYEE hoặc ADMIN (nhận được: '${roleRaw}')`,
+          message: `Vai trò phải là EMPLOYEE, DEPT_MANAGER hoặc ADMIN (nhận được: '${roleRaw}')`,
         });
         hasError = true;
       }

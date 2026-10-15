@@ -27,7 +27,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (!user) {
         router.push('/login');
       } else if (user.role !== 'ADMIN') {
-        router.push('/employee/dashboard');
+        if (user.role === 'DEPT_MANAGER') {
+          router.push('/manager/dashboard');
+        } else {
+          router.push('/employee/dashboard');
+        }
       }
     }
   }, [user, isLoading, router]);
