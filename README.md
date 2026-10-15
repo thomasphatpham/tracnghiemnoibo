@@ -125,9 +125,6 @@ Sau khi chạy lệnh `npx prisma db seed`, hệ thống đã có sẵn 3 phân 
 # Xem giao diện trực quan Database bằng Prisma Studio (tại thư mục backend):
 npx prisma studio
 
-# Chạy toàn bộ bộ test kiểm thử tự động (tại thư mục backend):
-npm test
-
 # Build kiểm tra sản phẩm trước khi deploy (Production Build):
 cd backend && npm run build
 cd ../frontend && npm run build
