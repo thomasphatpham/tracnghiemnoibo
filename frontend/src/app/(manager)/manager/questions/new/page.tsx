@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { api } from '@/lib/api';
-import { useAuth } from '@/lib/auth-context';
-import { usePermissions } from '@/lib/use-permissions';
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { usePermissions } from "@/lib/use-permissions";
 import {
   HelpCircle,
   ArrowLeft,
@@ -16,23 +16,23 @@ import {
   RefreshCw,
   Sparkles,
   Lock,
-} from 'lucide-react';
+} from "lucide-react";
 
 /**
  * Sinh mã câu hỏi tự động theo định dạng: [MÃ PHÒNG BAN]-Q[6 KÝ TỰ HEX]
  */
-function generateQuestionCode(depCode: string = 'Q'): string {
+function generateQuestionCode(depCode: string = "Q"): string {
   const bytes = new Uint8Array(3);
-  if (typeof window !== 'undefined' && window.crypto) {
+  if (typeof window !== "undefined" && window.crypto) {
     window.crypto.getRandomValues(bytes);
   } else {
     for (let i = 0; i < 3; i++) bytes[i] = Math.floor(Math.random() * 256);
   }
   const randHex = Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
     .toUpperCase();
-  const prefix = depCode ? depCode.trim().toUpperCase() : 'Q';
+  const prefix = depCode ? depCode.trim().toUpperCase() : "Q";
   return `${prefix}-Q${randHex}`;
 }
 
@@ -41,22 +41,22 @@ export default function ManagerCreateQuestionPage() {
   const { user } = useAuth();
   const { can } = usePermissions();
 
-  const deptId = user?.departmentId || user?.department?.id || '';
-  const deptCode = user?.department?.code || 'Q';
-  const deptName = user?.department?.name || 'Phòng ban trực thuộc';
+  const deptId = user?.departmentId || user?.department?.id || "";
+  const deptCode = user?.department?.code || "Q";
+  const deptName = user?.department?.name || "Phòng ban trực thuộc";
 
-  const [code, setCode] = useState('');
-  const [content, setContent] = useState('');
-  const [explanation, setExplanation] = useState('');
+  const [code, setCode] = useState("");
+  const [content, setContent] = useState("");
+  const [explanation, setExplanation] = useState("");
 
-  const [optionA, setOptionA] = useState('');
-  const [optionB, setOptionB] = useState('');
-  const [optionC, setOptionC] = useState('');
-  const [optionD, setOptionD] = useState('');
-  const [correctKey, setCorrectKey] = useState<'A' | 'B' | 'C' | 'D'>('A');
+  const [optionA, setOptionA] = useState("");
+  const [optionB, setOptionB] = useState("");
+  const [optionC, setOptionC] = useState("");
+  const [optionD, setOptionD] = useState("");
+  const [correctKey, setCorrectKey] = useState<"A" | "B" | "C" | "D">("A");
 
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     // Tự sinh mã câu hỏi ban đầu dựa theo mã phòng ban của quản lý
@@ -72,55 +72,66 @@ export default function ManagerCreateQuestionPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!deptId) {
-      setErrorMessage('Tài khoản của bạn chưa được liên kết với phòng ban cụ thể.');
+      setErrorMessage(
+        "Tài khoản của bạn chưa được liên kết với phòng ban cụ thể.",
+      );
       return;
     }
     if (!content.trim()) {
-      setErrorMessage('Vui lòng nhập nội dung câu hỏi.');
+      setErrorMessage("Vui lòng nhập nội dung câu hỏi.");
       return;
     }
-    if (!optionA.trim() || !optionB.trim() || !optionC.trim() || !optionD.trim()) {
-      setErrorMessage('Vui lòng nhập đầy đủ cả 4 phương án A, B, C, D.');
+    if (
+      !optionA.trim() ||
+      !optionB.trim() ||
+      !optionC.trim() ||
+      !optionD.trim()
+    ) {
+      setErrorMessage("Vui lòng nhập đầy đủ cả 4 phương án A, B, C, D.");
       return;
     }
 
     setIsLoading(true);
-    setErrorMessage('');
+    setErrorMessage("");
 
-    const submitCode = code.trim().toUpperCase() || generateQuestionCode(deptCode);
+    const submitCode =
+      code.trim().toUpperCase() || generateQuestionCode(deptCode);
 
     try {
-      await api.post('/questions', {
+      await api.post("/questions", {
         code: submitCode,
         departmentId: deptId,
         content: content.trim(),
         explanation: explanation.trim() || undefined,
         options: [
-          { key: 'A', content: optionA.trim(), isCorrect: correctKey === 'A' },
-          { key: 'B', content: optionB.trim(), isCorrect: correctKey === 'B' },
-          { key: 'C', content: optionC.trim(), isCorrect: correctKey === 'C' },
-          { key: 'D', content: optionD.trim(), isCorrect: correctKey === 'D' },
+          { key: "A", content: optionA.trim(), isCorrect: correctKey === "A" },
+          { key: "B", content: optionB.trim(), isCorrect: correctKey === "B" },
+          { key: "C", content: optionC.trim(), isCorrect: correctKey === "C" },
+          { key: "D", content: optionD.trim(), isCorrect: correctKey === "D" },
         ],
       });
 
-      router.push('/manager/questions');
+      router.push("/manager/questions");
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Không thể tạo câu hỏi mới.';
-      setErrorMessage(Array.isArray(msg) ? msg.join(', ') : msg);
+      const msg = err.response?.data?.message || "Không thể tạo câu hỏi mới.";
+      setErrorMessage(Array.isArray(msg) ? msg.join(", ") : msg);
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!can('questions', 'create')) {
+  if (!can("questions", "create")) {
     return (
       <div className="max-w-xl mx-auto mt-12 bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-4 shadow-sm">
         <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
           <AlertCircle className="w-6 h-6" />
         </div>
-        <h2 className="text-base font-bold text-slate-800">Không có quyền truy cập</h2>
+        <h2 className="text-base font-bold text-slate-800">
+          Không có quyền truy cập
+        </h2>
         <p className="text-xs text-slate-500">
-          Bạn không có quyền tạo câu hỏi trắc nghiệm (questions:create). Vui lòng liên hệ Quản trị viên hệ thống để được cấp quyền.
+          Bạn không có quyền tạo câu hỏi trắc nghiệm (questions:create). Vui
+          lòng liên hệ Quản trị viên hệ thống để được cấp quyền.
         </p>
         <Link
           href="/manager/questions"
@@ -187,13 +198,17 @@ export default function ManagerCreateQuestionPage() {
               <input
                 type="text"
                 required
+                disabled
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="VD: CNTT-QA1B2C3"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-not-allowed"
               />
               <p className="text-[11px] text-slate-400 mt-1">
-                Quy chuẩn: <span className="font-mono font-semibold text-slate-600">[{deptCode}]-Q[HEX]</span>
+                Quy chuẩn:{" "}
+                <span className="font-mono font-semibold text-slate-600">
+                  [{deptCode}]-Q[HEX]
+                </span>
               </p>
             </div>
 
@@ -237,7 +252,8 @@ export default function ManagerCreateQuestionPage() {
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                4 Phương Án Trả Lời (Chọn 1 đáp án đúng) <span className="text-rose-500">*</span>
+                4 Phương Án Trả Lời (Chọn 1 đáp án đúng){" "}
+                <span className="text-rose-500">*</span>
               </label>
               <span className="text-[11px] text-slate-400">
                 Click vào nút radio để chọn đáp án đúng
@@ -245,17 +261,17 @@ export default function ManagerCreateQuestionPage() {
             </div>
 
             {[
-              { key: 'A', value: optionA, setter: setOptionA },
-              { key: 'B', value: optionB, setter: setOptionB },
-              { key: 'C', value: optionC, setter: setOptionC },
-              { key: 'D', value: optionD, setter: setOptionD },
+              { key: "A", value: optionA, setter: setOptionA },
+              { key: "B", value: optionB, setter: setOptionB },
+              { key: "C", value: optionC, setter: setOptionC },
+              { key: "D", value: optionD, setter: setOptionD },
             ].map((opt) => (
               <div
                 key={opt.key}
                 className={`p-3 rounded-xl border flex items-center gap-3 transition ${
                   correctKey === opt.key
-                    ? 'bg-emerald-50/70 border-emerald-400'
-                    : 'bg-white border-slate-200 hover:border-slate-300'
+                    ? "bg-emerald-50/70 border-emerald-400"
+                    : "bg-white border-slate-200 hover:border-slate-300"
                 }`}
               >
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -269,8 +285,8 @@ export default function ManagerCreateQuestionPage() {
                   <span
                     className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${
                       correctKey === opt.key
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-slate-200 text-slate-700'
+                        ? "bg-emerald-600 text-white"
+                        : "bg-slate-200 text-slate-700"
                     }`}
                   >
                     {opt.key}
