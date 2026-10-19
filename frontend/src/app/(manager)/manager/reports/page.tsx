@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { api } from '@/lib/api';
-import { useAuth } from '@/lib/auth-context';
-import { usePermissions } from '@/lib/use-permissions';
-import { PermissionGate } from '@/components/PermissionGate';
-import Pagination from '@/components/Pagination';
+import React, { useEffect, useState, useCallback } from "react";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { usePermissions } from "@/lib/use-permissions";
+import { PermissionGate } from "@/components/PermissionGate";
+import Pagination from "@/components/Pagination";
 import {
   BarChart3,
   FileSpreadsheet,
@@ -24,7 +24,7 @@ import {
   Clock,
   ShieldAlert,
   UserCheck,
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function ManagerReportsPage() {
   const { user } = useAuth();
@@ -34,20 +34,21 @@ export default function ManagerReportsPage() {
   const [examsList, setExamsList] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const [search, setSearch] = useState('');
-  const [examFilter, setExamFilter] = useState('');
-  const [isPassedFilter, setIsPassedFilter] = useState('');
+  const [search, setSearch] = useState("");
+  const [examFilter, setExamFilter] = useState("");
+  const [isPassedFilter, setIsPassedFilter] = useState("");
 
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
 
   // Tải danh sách kỳ thi để làm bộ lọc
   useEffect(() => {
-    if (user && can('exams', 'read')) {
+    if (user && can("exams", "read")) {
       api
-        .get('/exams?limit=100')
+        .get("/exams?limit=100")
         .then((res) => {
-          const list = res.data?.data || (Array.isArray(res.data) ? res.data : []);
+          const list =
+            res.data?.data || (Array.isArray(res.data) ? res.data : []);
           setExamsList(list);
         })
         .catch(() => {});
@@ -62,14 +63,14 @@ export default function ManagerReportsPage() {
         page: page.toString(),
         limit: pageSize.toString(),
       });
-      if (search.trim()) params.append('search', search.trim());
-      if (examFilter) params.append('examId', examFilter);
-      if (isPassedFilter !== '') params.append('isPassed', isPassedFilter);
+      if (search.trim()) params.append("search", search.trim());
+      if (examFilter) params.append("examId", examFilter);
+      if (isPassedFilter !== "") params.append("isPassed", isPassedFilter);
 
       const res = await api.get(`/reports/my-department?${params.toString()}`);
       setReportData(res.data);
     } catch (err) {
-      console.error('Lỗi tải báo cáo phòng ban:', err);
+      console.error("Lỗi tải báo cáo phòng ban:", err);
     } finally {
       setIsLoading(false);
     }
@@ -86,9 +87,9 @@ export default function ManagerReportsPage() {
   };
 
   const handleResetFilters = () => {
-    setSearch('');
-    setExamFilter('');
-    setIsPassedFilter('');
+    setSearch("");
+    setExamFilter("");
+    setIsPassedFilter("");
     setPage(1);
   };
 
@@ -99,23 +100,24 @@ export default function ManagerReportsPage() {
       const params: any = {};
       if (search.trim()) params.search = search.trim();
       if (examFilter) params.examId = examFilter;
-      if (isPassedFilter !== '') params.isPassed = isPassedFilter;
+      if (isPassedFilter !== "") params.isPassed = isPassedFilter;
 
-      const response = await api.get('/reports/my-department/export', {
+      const response = await api.get("/reports/my-department/export", {
         params,
-        responseType: 'blob',
+        responseType: "blob",
       });
 
-      const deptCode = reportData?.department?.code || user?.department?.code || 'SDTC';
+      const deptCode =
+        reportData?.department?.code || user?.department?.code || "SDTC";
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', `Bao_Cao_Phong_Ban_${deptCode}.xlsx`);
+      link.setAttribute("download", `Bao_Cao_Phong_Ban_${deptCode}.xlsx`);
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
     } catch (err: any) {
-      alert('Không thể xuất tệp Excel báo cáo phòng ban.');
+      alert("Không thể xuất tệp Excel báo cáo phòng ban.");
     } finally {
       setIsExporting(false);
     }
@@ -149,9 +151,11 @@ export default function ManagerReportsPage() {
             )}
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Đơn vị:{' '}
-            <strong className="text-slate-800">{dept?.name || 'Phòng ban trực thuộc'}</strong> •
-            Theo dõi phổ điểm, tỷ lệ đạt và xếp hạng kết quả thi của CBNV
+            Đơn vị:{" "}
+            <strong className="text-slate-800">
+              {dept?.name || "Phòng ban trực thuộc"}
+            </strong>{" "}
+            • Theo dõi phổ điểm, tỷ lệ đạt và xếp hạng kết quả thi của CBNV
           </p>
         </div>
 
@@ -190,9 +194,15 @@ export default function ManagerReportsPage() {
               Tổng Nhân Sự
             </span>
             <div className="text-2xl font-extrabold text-slate-900 mt-1">
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-slate-400" /> : summary.totalEmployees}
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+              ) : (
+                summary.totalEmployees
+              )}
             </div>
-            <span className="text-[11px] text-slate-400 mt-0.5 block font-medium">Cán bộ nhân viên</span>
+            <span className="text-[11px] text-slate-400 mt-0.5 block font-medium">
+              Cán bộ nhân viên
+            </span>
           </div>
           <div className="w-11 h-11 rounded-xl bg-blue-50 text-[#0066B1] flex items-center justify-center">
             <Users className="w-5 h-5" />
@@ -205,9 +215,15 @@ export default function ManagerReportsPage() {
               Tổng Lượt Thi
             </span>
             <div className="text-2xl font-extrabold text-slate-900 mt-1">
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-slate-400" /> : summary.totalAttempts}
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+              ) : (
+                summary.totalAttempts
+              )}
             </div>
-            <span className="text-[11px] text-slate-400 mt-0.5 block font-medium">Lượt bài đã nộp</span>
+            <span className="text-[11px] text-slate-400 mt-0.5 block font-medium">
+              Lượt bài đã nộp
+            </span>
           </div>
           <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
             <Award className="w-5 h-5" />
@@ -220,9 +236,15 @@ export default function ManagerReportsPage() {
               Số Lượt Đạt
             </span>
             <div className="text-2xl font-extrabold text-emerald-600 mt-1">
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-slate-400" /> : summary.passedCount}
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+              ) : (
+                summary.passedCount
+              )}
             </div>
-            <span className="text-[11px] text-slate-400 mt-0.5 block font-medium">Vượt qua bài thi</span>
+            <span className="text-[11px] text-slate-400 mt-0.5 block font-medium">
+              Vượt qua bài thi
+            </span>
           </div>
           <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
             <CheckCircle2 className="w-5 h-5" />
@@ -235,9 +257,15 @@ export default function ManagerReportsPage() {
               Điểm Trung Bình
             </span>
             <div className="text-2xl font-extrabold text-slate-900 mt-1">
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-slate-400" /> : `${summary.avgScore} / 10`}
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+              ) : (
+                `${summary.avgScore} / 10`
+              )}
             </div>
-            <span className="text-[11px] text-slate-400 mt-0.5 block font-medium">Thang điểm 10</span>
+            <span className="text-[11px] text-slate-400 mt-0.5 block font-medium">
+              Thang điểm 10
+            </span>
           </div>
           <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
             <TrendingUp className="w-5 h-5" />
@@ -250,9 +278,15 @@ export default function ManagerReportsPage() {
               Tỷ Lệ Đạt
             </span>
             <div className="text-2xl font-extrabold text-[#0066B1] mt-1">
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-slate-400" /> : `${summary.passRate}%`}
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+              ) : (
+                `${summary.passRate}%`
+              )}
             </div>
-            <span className="text-[11px] text-slate-400 mt-0.5 block font-medium">Toàn phòng ban</span>
+            <span className="text-[11px] text-slate-400 mt-0.5 block font-medium">
+              Toàn phòng ban
+            </span>
           </div>
           <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
             <UserCheck className="w-5 h-5" />
@@ -320,16 +354,21 @@ export default function ManagerReportsPage() {
         {isLoading ? (
           <div className="p-12 flex flex-col items-center justify-center gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-[#0066B1]" />
-            <p className="text-xs text-slate-500">Đang tải báo cáo kết quả thi phòng ban...</p>
+            <p className="text-xs text-slate-500">
+              Đang tải báo cáo kết quả thi phòng ban...
+            </p>
           </div>
         ) : employees.length === 0 ? (
           <div className="p-12 text-center space-y-3">
             <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
               <Users className="w-6 h-6" />
             </div>
-            <div className="text-sm font-semibold text-slate-800">Không có dữ liệu nhân sự</div>
+            <div className="text-sm font-semibold text-slate-800">
+              Không có dữ liệu nhân sự
+            </div>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Không tìm thấy nhân viên nào trong phòng ban khớp với điều kiện lọc hiện tại.
+              Không tìm thấy nhân viên nào trong phòng ban khớp với điều kiện
+              lọc hiện tại.
             </p>
           </div>
         ) : (
@@ -342,7 +381,9 @@ export default function ManagerReportsPage() {
                     <th className="px-4 py-3">Cán Bộ Nhân Viên</th>
                     <th className="px-4 py-3">Chức Danh</th>
                     <th className="px-4 py-3">Kỳ Thi Tham Gia</th>
-                    <th className="px-4 py-3 text-center">Điểm Số (Thang 10)</th>
+                    <th className="px-4 py-3 text-center">
+                      Điểm Số (Thang 10)
+                    </th>
                     <th className="px-4 py-3 text-center">Số Câu Đúng</th>
                     <th className="px-4 py-3 text-center">Kết Quả</th>
                     <th className="px-4 py-3 text-center">Rời Tab</th>
@@ -356,31 +397,44 @@ export default function ManagerReportsPage() {
 
                     if (attempts.length === 0) {
                       return (
-                        <tr key={emp.id} className="hover:bg-slate-50/70 transition">
+                        <tr
+                          key={emp.id}
+                          className="hover:bg-slate-50/70 transition"
+                        >
                           <td className="px-4 py-3.5 text-center text-slate-500 font-medium">
                             {rowNumber}
                           </td>
                           <td className="px-4 py-3.5">
-                            <div className="font-bold text-slate-900">{emp.fullName}</div>
+                            <div className="font-bold text-slate-900">
+                              {emp.fullName}
+                            </div>
                             <div className="text-[10px] text-slate-400">
                               @{emp.username} • {emp.email}
                             </div>
                           </td>
                           <td className="px-4 py-3.5 text-slate-600">
-                            {emp.position || '—'}
+                            {emp.position || "—"}
                           </td>
                           <td className="px-4 py-3.5 text-slate-400 italic">
                             Chưa có bài thi
                           </td>
-                          <td className="px-4 py-3.5 text-center text-slate-400">—</td>
-                          <td className="px-4 py-3.5 text-center text-slate-400">—</td>
+                          <td className="px-4 py-3.5 text-center text-slate-400">
+                            —
+                          </td>
+                          <td className="px-4 py-3.5 text-center text-slate-400">
+                            —
+                          </td>
                           <td className="px-4 py-3.5 text-center">
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
                               Chưa thi
                             </span>
                           </td>
-                          <td className="px-4 py-3.5 text-center text-slate-400">0</td>
-                          <td className="px-4 py-3.5 text-right text-slate-400">—</td>
+                          <td className="px-4 py-3.5 text-center text-slate-400">
+                            0
+                          </td>
+                          <td className="px-4 py-3.5 text-right text-slate-400">
+                            —
+                          </td>
                         </tr>
                       );
                     }
@@ -393,36 +447,40 @@ export default function ManagerReportsPage() {
                           className="hover:bg-slate-50/70 transition"
                         >
                           <td className="px-4 py-3.5 text-center text-slate-500 font-medium">
-                            {isFirstAttempt ? rowNumber : ''}
+                            {isFirstAttempt ? rowNumber : ""}
                           </td>
 
                           <td className="px-4 py-3.5">
                             {isFirstAttempt ? (
                               <div>
-                                <div className="font-bold text-slate-900">{emp.fullName}</div>
+                                <div className="font-bold text-slate-900">
+                                  {emp.fullName}
+                                </div>
                                 <div className="text-[10px] text-slate-400">
                                   @{emp.username} • {emp.email}
                                 </div>
                               </div>
                             ) : (
                               <div className="pl-4 text-[10px] text-slate-400 italic">
-                                ↳ Lượt thi khác
+                                Lượt thi khác
                               </div>
                             )}
                           </td>
 
                           <td className="px-4 py-3.5 text-slate-600">
-                            {isFirstAttempt ? emp.position || '—' : ''}
+                            {isFirstAttempt ? emp.position || "—" : ""}
                           </td>
 
                           <td className="px-4 py-3.5 font-medium text-slate-800">
-                            {att.exam?.name || '—'}
+                            {att.exam?.name || "—"}
                           </td>
 
                           <td className="px-4 py-3.5 text-center">
                             <span
                               className={`font-mono font-bold text-sm ${
-                                att.isPassed ? 'text-emerald-600' : 'text-rose-600'
+                                att.isPassed
+                                  ? "text-emerald-600"
+                                  : "text-rose-600"
                               }`}
                             >
                               {att.score ?? 0}
@@ -434,7 +492,7 @@ export default function ManagerReportsPage() {
                             att.correctCount !== null &&
                             att.exam?.totalQuestions
                               ? `${att.correctCount}/${att.exam.totalQuestions}`
-                              : '—'}
+                              : "—"}
                           </td>
 
                           <td className="px-4 py-3.5 text-center whitespace-nowrap">
@@ -464,14 +522,17 @@ export default function ManagerReportsPage() {
 
                           <td className="px-4 py-3.5 text-right text-slate-600 whitespace-nowrap text-[11px]">
                             {att.submittedAt
-                              ? new Date(att.submittedAt).toLocaleString('vi-VN', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  year: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })
-                              : '—'}
+                              ? new Date(att.submittedAt).toLocaleString(
+                                  "vi-VN",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  },
+                                )
+                              : "—"}
                           </td>
                         </tr>
                       );
